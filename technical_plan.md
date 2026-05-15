@@ -2,16 +2,33 @@
 
 ## Locked MVP Decisions
 
-- Product type: local IBM Bob extension for Node.js modernization analysis
+- Product type: local IBM Bob modernization copilot for Node.js upgrade planning
+- Product posture: Bob-first experience with MCP-backed repo intelligence
 - Backend stack: Node.js + TypeScript
 - Monorepo: single repo with `npm` workspaces
 - Bob integration: local `STDIO` MCP server only
 - Bob mode: one focused custom mode
+- MCP model: multiple smaller MCP tools, adaptively orchestrated by Bob
+- Bob responsibility:
+  - gather scope
+  - decide what evidence to collect
+  - compare migration paths
+  - choose the recommended path
+  - produce the user-facing report in chat
+- MCP responsibility:
+  - inspect repo state
+  - gather deterministic evidence
+  - compare technical paths
+  - persist report artifacts
+  - open the local viewer
+- Final outputs:
+  - Bob chat report
+  - local viewer report
 - Viewer: plain HTML/CSS/JS
 - Viewer delivery:
   - local offline viewer for real usage
   - hosted static demo viewer for judges
-- Viewer data model: generic viewer page + generated JSON reports
+- Viewer data model: generic viewer page + generated JSON reports containing MCP evidence and Bob's chosen plan
 - Viewer server: built-in local static server in the Node monorepo
 - Viewer auto-open: enabled by default, user can turn it off
 - Repo input: current local repo opened in Bob
@@ -19,11 +36,12 @@
 - Monorepo target handling: single selected subproject analysis only
 - Analysis scope: any Node.js repo
 - Package manager support: `npm`, `pnpm`, `yarn`
-- Recommendation model: analyze and report only, no patch generation in MVP
+- Recommendation model: Bob makes the final recommendation using MCP evidence, no patch generation in MVP
 - Resolution model:
   - issue
   - incompatibility reason
-  - recommended solution
+  - evidence
+  - default technical recommendation
   - multiple ranked alternative solutions
   - affected files
   - validation steps
@@ -50,12 +68,16 @@
 
 ## Goals
 
-- Analyze a local Node.js repo against a user-requested target Node version.
+- Let a user open a local Node.js repo in Bob and ask for upgrade guidance against a target Node version.
+- Let Bob ask smart scoping questions before analysis when needed.
+- Let Bob choose which MCP tools to call and in what order based on the repo and the user request.
 - Detect runtime, dependency, config, CI/CD, container, deployment, script, and source-level incompatibilities.
-- Explain why each issue does not work on the target Node version.
-- Offer one recommended solution and multiple ranked alternatives inside the same package ecosystem.
-- Generate a structured JSON report and open a local human-readable viewer automatically.
-- Let Bob present the analysis as an execution plan with ordered implementation guidance.
+- Provide deterministic evidence so Bob does not need to improvise repo facts.
+- Let Bob compare migration paths such as direct upgrade versus staged upgrade.
+- Produce both:
+  - a conversational Bob report
+  - a local viewer report with saved evidence and Bob's chosen plan
+- Demonstrate clear, visible, meaningful use of IBM Bob as the modernization architect.
 
 ## Non-Goals for MVP
 
@@ -68,6 +90,7 @@
 - No package replacement suggestions across ecosystems
 - No Java/Spring analysis
 - No multi-subproject combined report
+- No autonomous repo modifications
 
 ## Repository Layout
 
@@ -121,8 +144,17 @@ modernization-navigator/
     mcp-server/
       src/
         index.ts
-        tool-handler.ts
+        report-writer.ts
         viewer-runtime.ts
+        tools/
+          discover-repo-scope.ts
+          collect-runtime-evidence.ts
+          inspect-dependency-blockers.ts
+          inspect-ops-runtime.ts
+          inspect-source-compatibility.ts
+          compare-target-paths.ts
+          save-modernization-report.ts
+          open-report-viewer.ts
   reports/
     latest/
       report.json
@@ -170,24 +202,71 @@ modernization-navigator/
 1. User opens a local Node.js repo in Bob.
 2. User selects `Modernization Architect`.
 3. User asks for analysis with a target Node version and optional subdirectory.
-4. Bob calls the single MCP tool `analyze_modernization_target`.
-5. MCP server resolves repo root, subdirectory, target version, offline mode, and viewer options.
-6. Analysis engine:
-   - detects package manager
-   - reads runtime and deployment config
-   - scans dependencies
-   - parses JS/TS source with `ts-morph`
-   - applies internal compatibility rules
-   - enriches with npm registry and OSV when online
-   - ranks same-ecosystem solutions
-7. Report writer creates:
-   - `reports/latest/report.json`
-   - `reports/history/<timestamp>.json`
-   - `reports/index.json`
-8. Viewer runtime ensures local server is running.
-9. Viewer auto-opens local URL by default.
-10. MCP tool returns summary metadata to Bob.
-11. Bob explains findings, ordered execution steps, and validation sequence.
+4. Bob gathers missing scope:
+   - target Node version if unclear
+   - optional subdirectory
+   - upgrade preference such as safest path or fastest path when useful
+5. Bob inspects the repo context and decides which MCP tools to call first.
+6. Bob calls evidence tools such as:
+   - `discover_repo_scope`
+   - `collect_runtime_evidence`
+   - `inspect_dependency_blockers`
+7. Based on returned evidence, Bob decides whether to call more tools such as:
+   - `inspect_ops_runtime`
+   - `inspect_source_compatibility`
+   - `compare_target_paths`
+8. MCP tools return structured evidence only:
+   - repo facts
+   - issue candidates
+   - ranked technical options
+   - file-level references
+   - comparison data
+9. Bob synthesizes the evidence into:
+   - current-state summary
+   - top blockers
+   - recommended migration path
+   - ordered implementation plan
+   - validation checklist
+10. Bob calls `save_modernization_report` to persist:
+   - MCP evidence
+   - Bob's selected strategy
+   - Bob's execution plan
+   - validation checklist
+11. Bob calls `open_report_viewer`.
+12. Viewer runtime ensures the local server is running and opens the browser by default.
+13. Bob presents the final chat report.
+14. User can inspect the viewer and ask Bob follow-up questions, and Bob can call more MCP tools as needed.
+
+## Bob and MCP Responsibility Model
+
+### Bob does
+
+- own the user conversation
+- ask scoping questions
+- decide which tools to call
+- decide call order adaptively
+- compare direct and staged migration paths
+- choose the recommended path for this repo and this user goal
+- present the final narrative report in chat
+- continue helping after the first report
+
+### MCP does
+
+- inspect manifests, lockfiles, CI, Docker, deployment config, scripts, and source
+- run AST and static checks
+- fetch external compatibility metadata when allowed
+- return deterministic structured evidence
+- compare target paths in a machine-readable way
+- save report artifacts to disk
+- start or reuse the local viewer server
+
+### Why MCP makes Bob better
+
+- Bob gets exact repo evidence instead of re-deriving facts every turn
+- Bob can reason over large repos without repeatedly re-reading the same files
+- Bob can rely on deterministic tool outputs for viewer artifacts and history
+- Bob stays focused on judgment, prioritization, and tradeoffs
+- The product visibly shows Bob orchestrating a toolbox rather than acting as a thin wrapper over one giant tool
 
 ## Report Contract
 
@@ -197,13 +276,16 @@ modernization-navigator/
 - `createdAt`
 - `repoRoot`
 - `subdirectory`
-- `targetNodeVersion`
+- `requestedTargetNodeVersion`
+- `evaluatedTargetNodeVersions`
 - `detectedPackageManager`
 - `offlineMode`
 - `externalDataStatus`
+- `toolTrace`
 - `runtimeEvidence`
 - `issues`
-- `implementationPlan`
+- `bobDecision`
+- `bobExecutionPlan`
 - `validationChecklist`
 
 ### Required issue fields
@@ -213,7 +295,7 @@ modernization-navigator/
 - `title`
 - `issue`
 - `incompatibilityReason`
-- `recommendedSolution`
+- `defaultTechnicalRecommendation`
 - `alternativeSolutions`
 - `affectedFiles`
 - `evidence`
@@ -230,6 +312,24 @@ modernization-navigator/
 - `tradeoffs`
 - `commands`
 
+### Required tool trace fields
+
+- `toolName`
+- `purpose`
+- `status`
+- `startedAt`
+- `finishedAt`
+- `resultSummary`
+
+### Required Bob decision fields
+
+- `summary`
+- `selectedTargetPath`
+- `rationale`
+- `prioritizedRisks`
+- `chosenSolutions`
+- `tradeoffs`
+
 ### Required implementation plan fields
 
 - `phase`
@@ -243,7 +343,7 @@ modernization-navigator/
 
 ### Goal
 
-Define the monorepo, shared contracts, runtime boundaries, and file layout.
+Define the monorepo, shared contracts, runtime boundaries, and file layout for a Bob-first architecture with MCP as the evidence layer.
 
 ### Deliverables
 
@@ -253,19 +353,25 @@ Define the monorepo, shared contracts, runtime boundaries, and file layout.
 - shared constants package area
 - base lint/format/typecheck setup
 - repo folder conventions
+- shared schemas for:
+  - evidence tool outputs
+  - persisted report artifacts
+  - Bob decision section
 
 ### Technical Requirements
 
 - Use `npm` workspaces with `apps/*` and `packages/*`.
 - Keep the viewer, MCP server, analysis engine, and shared contracts in the same repo.
-- Put all report JSON schemas in `packages/shared`.
+- Put all persisted report JSON schemas in `packages/shared`.
+- Put all MCP tool output schemas in `packages/shared`.
 - Put all internal compatibility rules in `packages/knowledge-base/data/*.json`.
-- Use one source of truth for report types:
+- Use one source of truth for report and tool types:
   - `zod` schemas first
   - TypeScript types inferred from schemas
 - Separate pure analysis logic from IO-heavy modules.
 - Keep provider interfaces separate from provider implementations.
 - Keep viewer server separate from MCP transport code.
+- Keep report writer separate from evidence generators.
 - Keep demo sample sync logic in `scripts/`.
 
 ### Engineering Constraints
@@ -281,92 +387,119 @@ Define the monorepo, shared contracts, runtime boundaries, and file layout.
 - One install command sets up the whole repo.
 - One build command compiles all TypeScript packages.
 - Shared schemas compile without circular dependencies.
-- Report paths are deterministic.
+- Tool output contracts and report contracts stay deterministic.
 
-## Workstream 2: MCP Integration
+## Workstream 2: Bob + MCP Orchestration
 
 ### Goal
 
-Expose one Bob tool through a local `STDIO` MCP server and pair it with one focused custom mode.
+Expose a local `STDIO` MCP toolbox that Bob can orchestrate adaptively through one focused custom mode.
 
 ### Deliverables
 
 - local `STDIO` MCP server
 - Bob MCP config
 - Bob custom mode
-- orchestration tool handler
+- smaller MCP tool handlers
+- report persistence tool
 - viewer auto-open integration
 
-### MCP Tool
+### MCP Tool Inventory
 
-- Tool name: `analyze_modernization_target`
-- Tool count: one orchestration tool only
+- `discover_repo_scope`
+- `collect_runtime_evidence`
+- `inspect_dependency_blockers`
+- `inspect_ops_runtime`
+- `inspect_source_compatibility`
+- `compare_target_paths`
+- `save_modernization_report`
+- `open_report_viewer`
 
-### Tool Input Contract
+### Tool Design Requirements
 
-- `targetNodeVersion: string`
-- `subdirectory?: string`
-- `offline?: boolean`
-- `autoOpenViewer?: boolean`
+- Each tool must do one bounded job.
+- Tool outputs must be structured evidence or side effects, not a full user-facing report.
+- `compare_target_paths` must support direct versus staged upgrade comparisons when enough evidence exists.
+- `save_modernization_report` must accept both:
+  - MCP evidence references or payloads
+  - Bob-authored decision and plan fields
+- `open_report_viewer` must start or reuse the local viewer server and return the local URL.
 
-### Tool Output Contract
+### Common Tool Input Requirements
 
-- `reportId`
-- `reportPath`
-- `viewerUrl`
-- `repoRoot`
-- `subdirectory`
-- `targetNodeVersion`
-- `issueCount`
-- `issueCategories`
-- `externalDataStatus`
+- `targetNodeVersion` must accept:
+  - exact version
+  - major version only
+- Tools must support optional `subdirectory`.
+- Tools must support `offline`.
+- Viewer tooling must support `autoOpenViewer`.
+
+### Common Tool Output Requirements
+
+- Every evidence tool must return:
+  - stable schema
+  - concise summary fields
+  - file-level evidence references
+  - issue identifiers when applicable
+- Comparison tool must return:
+  - compared target paths
+  - risk deltas
+  - effort deltas
+  - notable blockers by path
+- Save tool must return:
+  - `reportId`
+  - `reportPath`
+  - `historyPath`
+- Viewer tool must return:
+  - `viewerUrl`
+  - server status
 
 ### Technical Requirements
 
 - Use local `STDIO` transport only.
 - Bob config must point to the built MCP server entrypoint.
-- The tool handler must validate input with `zod`.
-- `targetNodeVersion` must accept:
-  - exact version
-  - major version only
-- Normalize target version internally before analysis.
+- The tool handlers must validate input with `zod`.
 - Resolve repo root from the Bob-opened workspace.
 - If `subdirectory` is provided, restrict analysis to that subproject.
-- Start or reuse the built-in local viewer server before returning.
-- Auto-open the viewer by default.
-- Support opt-out through tool input and config.
-- Return concise structured output to Bob, not the full report payload.
+- Bob must be able to choose different tool paths for different repo situations.
+- Do not force a fixed call sequence in the MCP layer.
+- Return evidence to Bob, not the final conversational answer.
 
 ### Bob Custom Mode Requirements
 
 - Mode name: `Modernization Architect`
 - Mode responsibilities:
-  - gather target Node version
-  - gather optional subdirectory
-  - call `analyze_modernization_target` once
+  - gather missing scope
+  - decide which MCP tools to call
+  - decide whether comparison is needed
   - summarize exact incompatibilities
-  - present recommended order of changes
-  - present validation checklist
+  - choose a recommended migration path
+  - present implementation order
+  - persist the chosen plan
+  - open the viewer
+- Mode must cite MCP evidence in its reasoning.
 - Mode must not invent package replacements outside report data.
 - Mode must not promise code patches in MVP.
 - Mode response order:
   - current state summary
-  - detected issues
-  - recommended implementation order
+  - key blockers
+  - recommended path
+  - ordered implementation plan
   - validation sequence
 
 ### Acceptance Criteria
 
-- Bob can see and call the tool locally.
+- Bob can see and call the toolbox locally.
 - Invalid tool input returns typed validation errors.
+- Bob can choose different tool sequences for different scenarios.
 - Viewer URL opens automatically unless disabled.
-- Bob mode produces consistent execution-plan output.
+- Final report artifact contains both MCP evidence and Bob's selected plan.
 
-## Workstream 3: Analysis Engine
+## Workstream 3: Evidence Engine
 
 ### Goal
 
-Analyze one local Node.js repo or selected subdirectory and produce a resolution-oriented modernization report.
+Analyze one local Node.js repo or selected subdirectory and return composable evidence for Bob rather than a single all-in-one answer.
 
 ### Deliverables
 
@@ -377,7 +510,8 @@ Analyze one local Node.js repo or selected subdirectory and produce a resolution
 - source analyzer
 - provider abstraction layer
 - rule-based solution ranker
-- report builder
+- evidence pack builder
+- report writer support
 
 ### Input Scope
 
@@ -475,7 +609,7 @@ Analyze one local Node.js repo or selected subdirectory and produce a resolution
 - Every rule must define:
   - match conditions
   - incompatibility reason
-  - recommended solution pattern
+  - default technical recommendation
   - optional ranked alternatives
   - evidence hints
 
@@ -493,42 +627,41 @@ Analyze one local Node.js repo or selected subdirectory and produce a resolution
   - continue local analysis
   - mark external enrichment as skipped in report
 
-### Solution Ranking Requirements
+### Evidence Output Requirements
 
-- Use rule-based scoring only.
-- Rank alternatives by:
-  - compatibility with target Node version
-  - match with current package ecosystem
-  - expected implementation effort
-  - amount of source/config churn
-  - known vulnerability exposure
-  - certainty of repo evidence
-- Output one recommended solution and multiple ranked alternatives.
-
-### Report Generation Requirements
-
-- Write stable latest report path.
-- Write timestamped history copy per run.
-- Update `reports/index.json` on every run.
-- Keep report JSON deterministic for test fixtures.
-- Include exact evidence locations:
+- Every issue must have a stable identifier that Bob can reference across turns.
+- Every issue must include exact evidence locations:
   - file path
   - package name
   - config key
   - source pattern
+- Every evidence output must be deterministic for test fixtures.
+- Comparison outputs must be machine-readable so Bob can compare paths cleanly.
+
+### Report Generation Requirements
+
+- Write stable latest report path.
+- Write timestamped history copy per saved run.
+- Update `reports/index.json` on every saved run.
+- Persist:
+  - MCP evidence
+  - tool trace
+  - Bob decision
+  - Bob execution plan
+- Keep report JSON deterministic for test fixtures.
 
 ### Acceptance Criteria
 
-- Tool handles `npm`, `pnpm`, and `yarn` repos.
-- Tool handles offline mode without crashing.
-- Tool handles repo root or selected subdirectory.
-- Report contains issue, reason, solution, alternatives, files, and validation steps for every finding.
+- Tools handle `npm`, `pnpm`, and `yarn` repos.
+- Tools handle offline mode without crashing.
+- Tools handle repo root or selected subdirectory.
+- Evidence outputs contain issue, reason, technical recommendation, alternatives, files, and validation steps for every finding.
 
 ## Workstream 4: Viewer UI
 
 ### Goal
 
-Render generated report JSON in a readable static viewer for local use and a hosted sample demo.
+Render saved MCP evidence and Bob's chosen plan in a readable static viewer for local use and a hosted sample demo.
 
 ### Deliverables
 
@@ -536,7 +669,8 @@ Render generated report JSON in a readable static viewer for local use and a hos
 - hosted demo viewer assets
 - local viewer server
 - report history selector
-- report detail rendering
+- Bob decision rendering
+- evidence detail rendering
 - viewer config model
 
 ### Viewer Model
@@ -552,7 +686,7 @@ Render generated report JSON in a readable static viewer for local use and a hos
 ### Local Viewer Requirements
 
 - Serve viewer through built-in local server in the monorepo.
-- Auto-open viewer URL after analysis by default.
+- Auto-open viewer URL after report save by default.
 - Allow user to turn off auto-open.
 - Load reports from `reports/index.json`.
 - Support latest report view and history selector.
@@ -562,18 +696,22 @@ Render generated report JSON in a readable static viewer for local use and a hos
 - Display:
   - repo summary
   - selected subdirectory
-  - target Node version
+  - requested target version
+  - evaluated target paths
   - package manager
   - offline/external data status
+  - Bob decision summary
+  - Bob's chosen migration path
   - issue list
   - incompatibility reason
-  - recommended solution
+  - default technical recommendation
   - ranked alternatives
   - affected files
   - evidence
   - commands
   - validation steps
   - ordered implementation plan
+  - tool trace
 
 ### Hosted Demo Viewer Requirements
 
@@ -582,6 +720,7 @@ Render generated report JSON in a readable static viewer for local use and a hos
 - No live MCP integration.
 - Use committed sample report data only.
 - Use a static viewer config file that points to the sample manifest path.
+- Make the Bob versus MCP role split easy for judges to understand from the viewer alone.
 
 ### Local Viewer Server Requirements
 
@@ -599,10 +738,11 @@ Render generated report JSON in a readable static viewer for local use and a hos
 ### UI Structure Requirements
 
 - Sidebar or top navigation for:
-  - summary
-  - issues
+  - Bob recommendation
+  - evidence
   - implementation plan
   - validation
+  - tool trace
   - history
 - Issue cards must be collapsible.
 - File paths and commands must be copyable.
@@ -615,12 +755,15 @@ Render generated report JSON in a readable static viewer for local use and a hos
 - User can switch to a previous report.
 - Local viewer works from built-in local server.
 - Hosted demo viewer works without a backend.
+- Viewer clearly shows both:
+  - what Bob decided
+  - what MCP found
 
 ## Workstream 5: Testing
 
 ### Goal
 
-Make the analyzer, report writer, MCP handler, and viewer deterministic and safe to demo.
+Make the evidence tools, report writer, Bob-facing orchestration layer, and viewer deterministic and safe to demo.
 
 ### Deliverables
 
@@ -653,15 +796,20 @@ Make the analyzer, report writer, MCP handler, and viewer deterministic and safe
   - dependency resolution tests
   - AST detection tests
   - alternative ranking tests
+  - evidence output tests
   - report writer tests
 - `mcp-server`
   - input validation tests
-  - orchestration flow tests
+  - per-tool orchestration tests
+  - comparison tool tests
+  - save report tests
   - auto-open enabled/disabled tests
 - `viewer`
   - manifest loading tests
   - history selector tests
+  - Bob decision rendering tests
   - issue rendering tests
+  - tool trace rendering tests
   - empty/error state tests
 
 ### Required Fixtures
@@ -681,12 +829,13 @@ Make the analyzer, report writer, MCP handler, and viewer deterministic and safe
 - Report JSON is stable for fixture snapshots.
 - Viewer renders fixture reports correctly.
 - Offline mode passes without network access.
+- Saved reports preserve both evidence and Bob decision fields.
 
 ## Workstream 6: Deployment
 
 ### Goal
 
-Package the local tool for Bob usage and publish a static hosted viewer for judges.
+Package the local Bob-first toolchain for usage in Bob and publish a static hosted viewer for judges.
 
 ### Deliverables
 
@@ -730,7 +879,7 @@ Package the local tool for Bob usage and publish a static hosted viewer for judg
 
 ### Goal
 
-Make the tool easy to install, demo, judge, and explain.
+Make the Bob-first workflow easy to install, demo, judge, and explain.
 
 ### Deliverables
 
@@ -750,10 +899,12 @@ Make the tool easy to install, demo, judge, and explain.
   - build
   - Bob MCP config
   - custom mode setup
-  - running analysis
+  - running adaptive analysis
+  - saving the report
   - opening the local viewer
 - README must explain:
   - local Bob workflow
+  - Bob versus MCP role split
   - hosted demo viewer role
   - offline mode behavior
   - supported file types
@@ -762,7 +913,9 @@ Make the tool easy to install, demo, judge, and explain.
 - Demo script must show:
   - local repo in Bob
   - one target version prompt
-  - tool execution
+  - Bob asking at least one meaningful scoping question
+  - multiple MCP tool calls
+  - Bob choosing a migration path
   - viewer auto-open
   - issue list
   - implementation plan
@@ -788,13 +941,13 @@ Make the tool easy to install, demo, judge, and explain.
 - implement package manager detection
 - implement runtime/config detectors
 - implement provider layer
-- implement report writer
+- implement evidence tool outputs
 
 ### Phase 3
 
 - implement source AST analysis
-- implement solution ranking
-- implement `reports/index.json`
+- implement target path comparison
+- implement report writer and `reports/index.json`
 
 ### Phase 4
 

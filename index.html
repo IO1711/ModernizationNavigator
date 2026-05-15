@@ -16,8 +16,8 @@
       --accent-soft: #dce8ff;
       --shadow: 0 12px 28px rgba(14, 33, 63, 0.08);
       --radius: 18px;
-      --sidebar-width: 270px;
-      --max: 1500px;
+      --sidebar-width: 280px;
+      --max: 1520px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       --sans: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
@@ -127,14 +127,14 @@
 
     .hero h2 {
       margin: 0 0 10px;
-      font-size: 1.8rem;
+      font-size: 1.85rem;
       line-height: 1.2;
     }
 
     .hero p {
       margin: 0;
       color: var(--muted);
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
     .pill-row {
@@ -181,6 +181,10 @@
       line-height: 1.45;
     }
 
+    .card p + p {
+      margin-top: 8px;
+    }
+
     .section {
       padding: 28px;
     }
@@ -208,6 +212,19 @@
 
     .muted {
       color: var(--muted);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
     }
 
     .pre {
@@ -248,6 +265,62 @@
       line-height: 1.45;
     }
 
+    .workstream-meta {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin: 12px 0 20px;
+    }
+
+    .meta-box {
+      padding: 14px;
+      border-radius: 14px;
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
+    }
+
+    .meta-box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .meta-box span {
+      display: block;
+      line-height: 1.45;
+    }
+
+    .owner-empty {
+      color: #9aa7b8;
+      font-style: italic;
+    }
+
+    .subgrid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 16px;
+    }
+
+    .subcard {
+      padding: 18px;
+      border-radius: 16px;
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
+    }
+
+    .subcard h3 {
+      margin-top: 0;
+    }
+
+    .subcard ul,
+    .subcard ol {
+      margin-top: 10px;
+    }
+
     .checklist {
       display: grid;
       gap: 10px;
@@ -261,6 +334,126 @@
       border: 1px solid var(--line);
     }
 
+    .workflow-topology,
+    .workflow-step-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .workflow-topology {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 18px;
+    }
+
+    .workflow-node,
+    .workflow-step,
+    .workflow-cell,
+    .workflow-callout {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    .workflow-node,
+    .workflow-cell,
+    .workflow-callout {
+      background: var(--panel-alt);
+    }
+
+    .workflow-node {
+      padding: 16px;
+    }
+
+    .workflow-node strong,
+    .workflow-cell strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .workflow-node span,
+    .workflow-cell span,
+    .workflow-callout p {
+      display: block;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.93rem;
+    }
+
+    .workflow-chain {
+      margin-top: 16px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: #0f1724;
+      color: #eaf2ff;
+      font-family: var(--mono);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+
+    .workflow-stack {
+      display: grid;
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .workflow-step {
+      padding: 20px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .workflow-step-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .workflow-step-number {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .workflow-step-head h3 {
+      margin: 0;
+      font-size: 1.04rem;
+    }
+
+    .workflow-step-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .workflow-step-grid {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .workflow-cell {
+      padding: 14px;
+    }
+
+    .workflow-callout {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: var(--accent-soft);
+    }
+
+    .workflow-callout p {
+      margin: 0;
+      color: var(--text);
+    }
+
     @media (max-width: 1100px) {
       .layout {
         grid-template-columns: 1fr;
@@ -271,7 +464,11 @@
       }
 
       .grid.cols-2,
-      .grid.cols-3 {
+      .grid.cols-3,
+      .workstream-meta,
+      .subgrid,
+      .workflow-topology,
+      .workflow-step-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -281,12 +478,15 @@
   <div class="layout">
     <aside class="sidebar">
       <h1>Modernization Navigator</h1>
-      <p>Detailed technical plan for the MVP and immediate post-hackathon path.</p>
+      <p>Bob is the modernization architect. MCP is the repo intelligence layer that makes Bob faster, more exact, and more demoable.</p>
       <nav class="nav">
         <a href="#overview">Overview</a>
+        <a href="#actual-workflow">Actual Workflow</a>
+        <a href="#bob-mcp">Bob vs MCP</a>
+        <a href="#assignments">Assignment Board</a>
         <a href="#architecture">Architecture</a>
-        <a href="#mcp">MCP Integration</a>
-        <a href="#analysis">Analysis Engine</a>
+        <a href="#orchestration">Bob + MCP</a>
+        <a href="#analysis">Evidence Engine</a>
         <a href="#ui">Viewer UI</a>
         <a href="#testing">Testing</a>
         <a href="#deployment">Deployment</a>
@@ -299,32 +499,366 @@
       <section class="hero" id="overview">
         <h2>Technical Plan</h2>
         <p>
-          Modernization Navigator is a local IBM Bob extension for Node.js repo modernization analysis.
-          Bob is the main interface. A local STDIO MCP server runs analysis, writes JSON reports,
-          starts a built-in viewer server, and opens a human-readable static report page.
+          Modernization Navigator is a Bob-first modernization copilot for Node.js repos. Bob owns the conversation,
+          decides what to analyze, chooses which MCP tools to call, compares upgrade paths, and presents the final
+          migration report. The local MCP toolbox gathers deterministic repo evidence, saves report artifacts, and opens
+          the viewer.
         </p>
         <div class="pill-row">
-          <span class="pill">Node.js + TypeScript</span>
-          <span class="pill">Local STDIO MCP</span>
-          <span class="pill">Plain HTML/CSS/JS Viewer</span>
-          <span class="pill">Stateless</span>
+          <span class="pill">Bob-First Experience</span>
+          <span class="pill">Adaptive MCP Toolbox</span>
+          <span class="pill">Dual Outputs: Chat + Viewer</span>
+          <span class="pill">Deterministic Evidence</span>
           <span class="pill">npm + pnpm + yarn</span>
-          <span class="pill">npm + OSV + internal rules</span>
+          <span class="pill">Local STDIO Only</span>
         </div>
       </section>
 
       <section class="grid cols-3">
         <div class="card">
           <h3>Primary Workflow</h3>
-          <p>User works in Bob. Bob calls one MCP tool. The tool writes report JSON and opens the local viewer.</p>
+          <p>User works in Bob. Bob asks scope questions, chooses MCP tools, makes the recommendation, saves the report, and opens the viewer.</p>
         </div>
         <div class="card">
           <h3>Real Product Surface</h3>
-          <p>Local Bob workflow + local viewer server. No hosted backend. No database.</p>
+          <p>The real product is Bob plus a local evidence layer. No hosted backend, no database, no single giant analysis tool.</p>
         </div>
         <div class="card">
-          <h3>Demo Surface</h3>
-          <p>Hosted static viewer for judges using committed sample reports. Hosting: Vercel or Netlify.</p>
+          <h3>Judge Story</h3>
+          <p>Bob is visibly central. MCP makes Bob more exact and scalable by supplying structured repo evidence and persisted artifacts.</p>
+        </div>
+      </section>
+
+      <section class="section" id="actual-workflow">
+        <span class="eyebrow">Actual Workflow</span>
+        <h2>What Really Happens After the User Prompts Bob</h2>
+        <p class="muted">
+          This is the literal runtime path for the Bob-first version. The user sees Bob leading the workflow. MCP stays underneath as the
+          evidence and artifact layer.
+        </p>
+
+        <div class="workflow-topology">
+          <div class="workflow-node">
+            <strong>1. User in Bob</strong>
+            <span>User opens a repo in Bob, selects <code>Modernization Architect</code>, and asks for an upgrade plan.</span>
+          </div>
+          <div class="workflow-node">
+            <strong>2. Bob Thinks</strong>
+            <span>Bob asks scope questions, inspects the request, and decides which MCP tool to call first.</span>
+          </div>
+          <div class="workflow-node">
+            <strong>3. MCP Collects Evidence</strong>
+            <span>MCP tools inspect the repo, compare paths, and return structured facts. They do not write the final user report.</span>
+          </div>
+          <div class="workflow-node">
+            <strong>4. Bob Decides</strong>
+            <span>Bob picks the recommended migration path, persists the artifact, opens the viewer, and presents the final chat report.</span>
+          </div>
+        </div>
+
+        <div class="workflow-chain">User prompt in Bob -&gt; Bob scopes the problem -&gt; Bob picks MCP tools -&gt; MCP returns evidence -&gt; Bob decides the path -&gt; Bob saves report -&gt; viewer opens -&gt; Bob presents the plan</div>
+
+        <div class="workflow-stack">
+          <div class="workflow-step">
+            <div class="workflow-step-head">
+              <span class="workflow-step-number">1</span>
+              <div>
+                <h3>User opens Bob and selects the custom mode</h3>
+                <p>Bob is the main product surface from the first click.</p>
+              </div>
+            </div>
+            <div class="workflow-step-grid">
+              <div class="workflow-cell">
+                <strong>User does</strong>
+                <span>Open the target repo and choose the mode named <code>Modernization Architect</code>.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Bob does</strong>
+                <span>Loads the Bob mode instructions and gets ready to act like a modernization agent rather than a generic coding assistant.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>MCP does</strong>
+                <span>Nothing yet. MCP is idle until Bob decides what evidence it needs.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <div class="workflow-step-head">
+              <span class="workflow-step-number">2</span>
+              <div>
+                <h3>User asks for upgrade guidance</h3>
+                <p>Example: analyze this repo for Node 22, or compare Node 20 versus Node 22.</p>
+              </div>
+            </div>
+            <div class="workflow-step-grid">
+              <div class="workflow-cell">
+                <strong>User does</strong>
+                <span>Provides the target version and any constraint such as safest path or fastest path.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Bob does</strong>
+                <span>Asks missing scoping questions if needed: whole repo or subdirectory, direct upgrade or comparison, offline mode, and so on.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Why it matters</strong>
+                <span>This is Bob's strength. Bob is deciding what problem to solve, not just forwarding a raw prompt.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <div class="workflow-step-head">
+              <span class="workflow-step-number">3</span>
+              <div>
+                <h3>Bob chooses the first MCP tools</h3>
+                <p>The sequence is adaptive, not hardcoded.</p>
+              </div>
+            </div>
+            <div class="workflow-step-grid">
+              <div class="workflow-cell">
+                <strong>Bob looks at</strong>
+                <span>The prompt, repo shape, missing facts, and whether the user wants one path or a comparison.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Bob may call</strong>
+                <span><code>discover_repo_scope</code>, <code>collect_runtime_evidence</code>, and <code>inspect_dependency_blockers</code>.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>MCP returns</strong>
+                <span>Repo structure, package manager, Node declarations, dependency blockers, and file references as structured evidence.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <div class="workflow-step-head">
+              <span class="workflow-step-number">4</span>
+              <div>
+                <h3>Bob decides whether more evidence is needed</h3>
+                <p>This is where Bob behaves like an agent instead of a static UI.</p>
+              </div>
+            </div>
+            <div class="workflow-step-grid">
+              <div class="workflow-cell">
+                <strong>Bob may notice</strong>
+                <span>CI still pins Node 16, Docker uses an older base image, or source code has ESM/CJS friction signs.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Bob may call next</strong>
+                <span><code>inspect_ops_runtime</code>, <code>inspect_source_compatibility</code>, or <code>compare_target_paths</code>.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>MCP still does not do</strong>
+                <span>The final human recommendation. It only expands the evidence set Bob reasons over.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <div class="workflow-step-head">
+              <span class="workflow-step-number">5</span>
+              <div>
+                <h3>Bob chooses the migration path</h3>
+                <p>Now Bob turns evidence into judgment.</p>
+              </div>
+            </div>
+            <div class="workflow-step-grid">
+              <div class="workflow-cell">
+                <strong>Bob decides</strong>
+                <span>Whether to recommend direct upgrade, staged upgrade, one subproject first, or another lower-risk path.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Bob writes</strong>
+                <span>The current-state summary, top blockers, chosen path, phased implementation order, and validation checklist.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>MCP contributes</strong>
+                <span>Hard facts, ranked technical options, and comparable evidence so Bob can justify the decision.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <div class="workflow-step-head">
+              <span class="workflow-step-number">6</span>
+              <div>
+                <h3>Bob saves the artifact</h3>
+                <p>The persisted report includes both evidence and Bob's chosen plan.</p>
+              </div>
+            </div>
+            <div class="workflow-step-grid">
+              <div class="workflow-cell">
+                <strong>Bob calls</strong>
+                <span><code>save_modernization_report</code> after it has chosen the recommendation.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>MCP writes</strong>
+                <span><code>reports/latest/report.json</code>, <code>reports/history/&lt;timestamp&gt;.json</code>, and <code>reports/index.json</code>.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Saved content</strong>
+                <span>MCP evidence, tool trace, Bob decision summary, Bob execution plan, and validation checklist.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <div class="workflow-step-head">
+              <span class="workflow-step-number">7</span>
+              <div>
+                <h3>Bob opens the viewer</h3>
+                <p>The viewer is a second first-class output, not a replacement for Bob chat.</p>
+              </div>
+            </div>
+            <div class="workflow-step-grid">
+              <div class="workflow-cell">
+                <strong>Bob calls</strong>
+                <span><code>open_report_viewer</code> after the report exists.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>MCP does</strong>
+                <span>Start or reuse the local viewer server and return the local URL.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>User sees</strong>
+                <span>A browser view with Bob's recommendation at the top and deep evidence below it.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="workflow-step">
+            <div class="workflow-step-head">
+              <span class="workflow-step-number">8</span>
+              <div>
+                <h3>Bob remains in the loop after the first report</h3>
+                <p>The viewer does not end the conversation. Bob keeps helping.</p>
+              </div>
+            </div>
+            <div class="workflow-step-grid">
+              <div class="workflow-cell">
+                <strong>User can ask</strong>
+                <span>Focus only on CI blockers, compare Node 20 versus Node 22 again, or explain why Bob chose the staged path.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Bob can do</strong>
+                <span>Call more MCP tools, refine the plan, or produce a narrower follow-up summary.</span>
+              </div>
+              <div class="workflow-cell">
+                <strong>Why this is strong</strong>
+                <span>Bob stays the visible agent throughout the workflow instead of disappearing after a single tool call.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="bob-mcp">
+        <span class="eyebrow">Role Split</span>
+        <h2>What Bob Does, What MCP Does, and Why MCP Makes Bob Better</h2>
+        <p class="muted">
+          The point of MCP here is not to replace Bob. The point is to make Bob more exact, more scalable across large repos, and more
+          useful for persisted report artifacts and repeatable demos.
+        </p>
+
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Bob Owns</h3>
+            <p>Conversation, scoping, prioritization, target-path comparison, tradeoff judgment, the final user-facing report, and follow-up guidance.</p>
+          </div>
+          <div class="card">
+            <h3>MCP Owns</h3>
+            <p>Deterministic repo inspection, AST/static analysis, compatibility lookups, saved report artifacts, viewer launch, and structured evidence output.</p>
+          </div>
+          <div class="card">
+            <h3>Why Not Bob Alone</h3>
+            <p>Bob can inspect files, but MCP makes repo analysis more exact, repeatable, and artifact-friendly, especially across large multi-area repos.</p>
+          </div>
+          <div class="card">
+            <h3>Why Not MCP Alone</h3>
+            <p>MCP can return facts and comparisons, but it should not own the user conversation or the final migration judgment for this product story.</p>
+          </div>
+        </div>
+
+        <div class="mini-grid">
+          <div class="mini">
+            <strong>Bob strength: tool orchestration</strong>
+            <span>Bob decides which MCP tool to call next and can vary the sequence by repo shape and user goal.</span>
+          </div>
+          <div class="mini">
+            <strong>Bob strength: scoping</strong>
+            <span>Bob asks the right question before analyzing the wrong thing: whole repo or one package, direct path or staged path, safest or fastest.</span>
+          </div>
+          <div class="mini">
+            <strong>Bob strength: synthesis</strong>
+            <span>Bob turns evidence into an actual recommendation, not just a list of findings.</span>
+          </div>
+          <div class="mini">
+            <strong>MCP benefit: exact evidence</strong>
+            <span>MCP gives Bob stable issue IDs, file references, package facts, CI facts, and source-compatibility evidence.</span>
+          </div>
+          <div class="mini">
+            <strong>MCP benefit: persistence</strong>
+            <span>MCP saves the report so the viewer, demo flow, and report history all stay deterministic.</span>
+          </div>
+          <div class="mini">
+            <strong>Judge-facing value</strong>
+            <span>The demo shows Bob as the modernization architect, with MCP visibly improving Bob rather than replacing it.</span>
+          </div>
+        </div>
+
+        <div class="workflow-callout">
+          <p><strong>Plain-English summary:</strong> MCP should return evidence. Bob should return conclusions. That is the cleanest version of meaningful Bob usage for this project.</p>
+        </div>
+      </section>
+
+      <section class="section" id="assignments">
+        <span class="eyebrow">Assignment Board</span>
+        <h2>Workstream Split</h2>
+        <p class="muted">Assign one menu item per person. Each section below already contains scope, dependencies, deliverables, and handoff outputs.</p>
+        <div class="grid cols-3">
+          <div class="card">
+            <h3><a href="#architecture">Architecture</a></h3>
+            <p><strong>Owner:</strong> <span class="owner-empty">Unassigned</span></p>
+            <p>Set repo structure, shared contracts, and the Bob/MCP evidence-versus-decision boundary.</p>
+            <p><strong>Handoff:</strong> Orchestration, Analysis, UI, Testing</p>
+          </div>
+          <div class="card">
+            <h3><a href="#orchestration">Bob + MCP</a></h3>
+            <p><strong>Owner:</strong> <span class="owner-empty">Unassigned</span></p>
+            <p>Implement the Bob-facing mode, local MCP toolbox, adaptive call flow, report save, and viewer open path.</p>
+            <p><strong>Handoff:</strong> UI, Testing, Demo</p>
+          </div>
+          <div class="card">
+            <h3><a href="#analysis">Evidence Engine</a></h3>
+            <p><strong>Owner:</strong> <span class="owner-empty">Unassigned</span></p>
+            <p>Build scanners, providers, static checks, and composable evidence outputs Bob can reason over.</p>
+            <p><strong>Handoff:</strong> Orchestration, UI, Testing</p>
+          </div>
+          <div class="card">
+            <h3><a href="#ui">Viewer UI</a></h3>
+            <p><strong>Owner:</strong> <span class="owner-empty">Unassigned</span></p>
+            <p>Build the dual-purpose viewer that shows Bob's recommendation and MCP evidence together.</p>
+            <p><strong>Handoff:</strong> Deployment, Demo</p>
+          </div>
+          <div class="card">
+            <h3><a href="#testing">Testing</a></h3>
+            <p><strong>Owner:</strong> <span class="owner-empty">Unassigned</span></p>
+            <p>Create fixture repos, tool tests, artifact tests, and viewer rendering checks.</p>
+            <p><strong>Handoff:</strong> All engineering workstreams</p>
+          </div>
+          <div class="card">
+            <h3><a href="#deployment">Deployment</a></h3>
+            <p><strong>Owner:</strong> <span class="owner-empty">Unassigned</span></p>
+            <p>Package local Bob setup, MCP config, and the hosted sample viewer for judges.</p>
+            <p><strong>Handoff:</strong> Demo &amp; Docs</p>
+          </div>
+          <div class="card">
+            <h3><a href="#demo-docs">Demo &amp; Docs</a></h3>
+            <p><strong>Owner:</strong> <span class="owner-empty">Unassigned</span></p>
+            <p>Write the Bob-first story, installation guides, demo script, and judge-facing explanation.</p>
+            <p><strong>Handoff:</strong> Final submission</p>
+          </div>
         </div>
       </section>
 
@@ -332,38 +866,74 @@
         <h2>Locked MVP Decisions</h2>
         <div class="mini-grid">
           <div class="mini">
-            <strong>Scope</strong>
-            <span>Any local Node.js repo, optional subdirectory, single subproject analysis only.</span>
+            <strong>Product posture</strong>
+            <span>Bob-first modernization copilot. Bob is the architect. MCP is the evidence and artifact layer.</span>
           </div>
           <div class="mini">
-            <strong>Output</strong>
-            <span>JSON report only. Latest report + timestamped history + manifest index.</span>
+            <strong>MCP model</strong>
+            <span>Multiple smaller MCP tools, adaptively orchestrated by Bob instead of one giant all-in-one tool.</span>
           </div>
           <div class="mini">
-            <strong>Recommendations</strong>
-            <span>Issue, incompatibility reason, recommended solution, ranked same-ecosystem alternatives.</span>
+            <strong>Outputs</strong>
+            <span>Bob chat report and local viewer are both first-class outputs.</span>
           </div>
           <div class="mini">
-            <strong>Analysis</strong>
-            <span>Repo scanning, config scanning, lockfile inspection, JS/TS AST analysis, offline mode.</span>
+            <strong>Persistence</strong>
+            <span>The saved report contains both MCP evidence and Bob's chosen plan.</span>
           </div>
           <div class="mini">
             <strong>Viewer</strong>
-            <span>Generic static viewer page, built-in local server, history selector, auto-open by default.</span>
+            <span>Plain HTML/CSS/JS, built-in local server, static hosted demo for judges.</span>
           </div>
           <div class="mini">
-            <strong>Bob Integration</strong>
-            <span>One MCP tool and one focused custom mode with analysis + implementation guidance.</span>
+            <strong>Boundaries</strong>
+            <span>No hosted backend, no remote HTTP MCP server, no automatic code patch generation.</span>
           </div>
         </div>
       </section>
 
       <section class="section" id="architecture">
         <h2>Architecture</h2>
-        <h3>Goal</h3>
-        <p class="muted">Define repo layout, package boundaries, shared contracts, and runtime responsibilities.</p>
+        <div class="workstream-meta">
+          <div class="meta-box">
+            <strong>Owner</strong>
+            <span class="owner-empty">Unassigned</span>
+          </div>
+          <div class="meta-box">
+            <strong>Job</strong>
+            <span>Define repo structure, shared contracts, and the Bob/MCP handoff boundary.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Depends On</strong>
+            <span>None. This workstream unblocks the rest.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Handoff To</strong>
+            <span>Orchestration, Evidence Engine, Viewer, Testing</span>
+          </div>
+        </div>
 
-        <h3>Monorepo Layout</h3>
+        <div class="subgrid">
+          <div class="subcard">
+            <h3>Scope</h3>
+            <ul>
+              <li>Create the monorepo layout.</li>
+              <li>Define shared schemas for evidence tools, saved reports, and Bob decision fields.</li>
+              <li>Separate pure analysis logic from IO, viewer, and transport layers.</li>
+            </ul>
+          </div>
+          <div class="subcard">
+            <h3>Deliverables</h3>
+            <ul>
+              <li><code>npm</code> workspaces root configuration</li>
+              <li>TypeScript project references</li>
+              <li>shared schema package</li>
+              <li>root build, lint, and test scripts</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Repo Layout</h3>
         <pre class="pre">modernization-navigator/
   .bob/
     mcp.json
@@ -382,115 +952,172 @@
     analysis-engine/
     viewer-server/
     mcp-server/
+      src/tools/
+        discover-repo-scope.ts
+        collect-runtime-evidence.ts
+        inspect-dependency-blockers.ts
+        inspect-ops-runtime.ts
+        inspect-source-compatibility.ts
+        compare-target-paths.ts
+        save-modernization-report.ts
+        open-report-viewer.ts
   reports/
     latest/
     history/
-    index.json
-  scripts/
-    sync-demo-sample.ts</pre>
+    index.json</pre>
 
         <h3>Technical Requirements</h3>
         <ul>
           <li>Use <code>npm</code> workspaces with <code>apps/*</code> and <code>packages/*</code>.</li>
-          <li>Use <code>tsc</code> for build and <code>tsx</code> for local TypeScript execution.</li>
-          <li>Put all Zod schemas in <code>packages/shared</code>.</li>
-          <li>Infer TypeScript types from Zod schemas. Do not maintain duplicate runtime and compile-time contracts.</li>
-          <li>Keep analysis logic pure where possible. File IO and network IO must stay in thin boundary modules.</li>
-          <li>Keep knowledge base JSON files separate from analysis code.</li>
+          <li>Keep all persisted report JSON schemas and MCP tool schemas in <code>packages/shared</code>.</li>
+          <li>Use <code>zod</code> as the source of truth for tool outputs and saved report shapes.</li>
           <li>Keep viewer server independent from MCP transport logic.</li>
-          <li>Use <code>eslint</code> and <code>prettier</code> at repo root.</li>
+          <li>Keep report writing independent from evidence gathering.</li>
+          <li>Do not write to the analyzed repo itself.</li>
         </ul>
 
-        <h3>Required Scripts</h3>
+        <h3>Handoff Outputs</h3>
         <ul>
-          <li><code>npm run build</code></li>
-          <li><code>npm run typecheck</code></li>
-          <li><code>npm run lint</code></li>
-          <li><code>npm run test</code></li>
-          <li><code>npm run viewer:serve</code></li>
-          <li><code>npm run viewer:demo-sync</code></li>
-          <li><code>npm run mcp:dev</code></li>
+          <li>Shared contracts for evidence tools and persisted artifacts</li>
+          <li>Consistent package boundaries for MCP, analysis, and viewer layers</li>
+          <li>A clean separation between Bob decision logic and MCP evidence logic</li>
         </ul>
 
-        <h3>Acceptance</h3>
+        <h3>Done When</h3>
         <div class="checklist">
           <div>One install command sets up the full repo.</div>
           <div>One build command compiles all packages.</div>
-          <div>Shared schemas are the single source of report truth.</div>
+          <div>Shared schemas stay deterministic and reusable across tools and viewer artifacts.</div>
         </div>
       </section>
 
-      <section class="section" id="mcp">
-        <h2>MCP Integration</h2>
-        <h3>Goal</h3>
-        <p class="muted">Expose one local Bob tool through STDIO and pair it with one focused custom mode.</p>
+      <section class="section" id="orchestration">
+        <h2>Bob + MCP Orchestration</h2>
+        <div class="workstream-meta">
+          <div class="meta-box">
+            <strong>Owner</strong>
+            <span class="owner-empty">Unassigned</span>
+          </div>
+          <div class="meta-box">
+            <strong>Job</strong>
+            <span>Build the Bob-facing custom mode and the local MCP toolbox Bob can orchestrate adaptively.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Depends On</strong>
+            <span>Architecture and stable tool contracts.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Handoff To</strong>
+            <span>Viewer, Testing, Demo</span>
+          </div>
+        </div>
 
-        <h3>Deliverables</h3>
+        <div class="subgrid">
+          <div class="subcard">
+            <h3>Scope</h3>
+            <ul>
+              <li>Expose a local <code>STDIO</code> MCP toolbox.</li>
+              <li>Let Bob choose different tool paths for different repo situations.</li>
+              <li>Persist the final artifact and open the viewer after Bob makes the recommendation.</li>
+            </ul>
+          </div>
+          <div class="subcard">
+            <h3>Deliverables</h3>
+            <ul>
+              <li>local <code>STDIO</code> MCP server</li>
+              <li>Bob MCP config</li>
+              <li>Bob custom mode: <code>Modernization Architect</code></li>
+              <li>tool handlers, save flow, and viewer-open flow</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>MCP Tool Inventory</h3>
         <ul>
-          <li>Local <code>STDIO</code> MCP server</li>
-          <li>Bob MCP config</li>
-          <li>Bob custom mode: <code>Modernization Architect</code></li>
-          <li>One orchestration tool handler</li>
-          <li>Viewer auto-open integration</li>
+          <li><code>discover_repo_scope</code></li>
+          <li><code>collect_runtime_evidence</code></li>
+          <li><code>inspect_dependency_blockers</code></li>
+          <li><code>inspect_ops_runtime</code></li>
+          <li><code>inspect_source_compatibility</code></li>
+          <li><code>compare_target_paths</code></li>
+          <li><code>save_modernization_report</code></li>
+          <li><code>open_report_viewer</code></li>
         </ul>
 
-        <h3>Tool Contract</h3>
-        <pre class="pre">Tool name: analyze_modernization_target
-
-Inputs:
-  targetNodeVersion: string
-  subdirectory?: string
-  offline?: boolean
-  autoOpenViewer?: boolean
-
-Outputs:
-  reportId: string
-  reportPath: string
-  viewerUrl: string
-  repoRoot: string
-  subdirectory?: string
-  targetNodeVersion: string
-  issueCount: number
-  issueCategories: string[]
-  externalDataStatus: object</pre>
-
-        <h3>Technical Requirements</h3>
+        <h3>Design Rules</h3>
         <ul>
-          <li>Use local STDIO transport only.</li>
-          <li>Validate tool input with <code>zod</code>.</li>
-          <li>Accept exact Node versions and major-only versions.</li>
-          <li>Treat the user-requested target version as authoritative.</li>
-          <li>Use repo-declared Node versions only as current-state evidence.</li>
-          <li>Resolve repo root from the Bob-opened local workspace.</li>
-          <li>Restrict analysis to an optional selected subdirectory when provided.</li>
-          <li>Ensure the local viewer server is running before tool return.</li>
-          <li>Auto-open the viewer by default and allow opt-out.</li>
-          <li>Return summary metadata to Bob, not the full raw report.</li>
+          <li>Each tool must do one bounded job.</li>
+          <li>Tools return evidence or side effects, not the final human-facing report.</li>
+          <li>Bob chooses which tools to call and when.</li>
+          <li><code>save_modernization_report</code> must store both MCP evidence and Bob's decision fields.</li>
+          <li><code>open_report_viewer</code> must start or reuse the local viewer server and return the viewer URL.</li>
         </ul>
 
         <h3>Custom Mode Requirements</h3>
         <ul>
           <li>Ask for target Node version if missing.</li>
           <li>Ask for subdirectory only when needed.</li>
-          <li>Call the tool once per analysis request.</li>
-          <li>Respond with current state summary, issues, ordered implementation plan, and validation checklist.</li>
-          <li>Do not promise code patches in MVP.</li>
-          <li>Do not suggest package replacements outside report data.</li>
+          <li>Ask for user preference such as safest path or fastest path when it changes the recommendation.</li>
+          <li>Choose tool order adaptively instead of following one rigid path.</li>
+          <li>Cite MCP evidence in the final report.</li>
+          <li>Persist the report and open the viewer after choosing the plan.</li>
         </ul>
+
+        <h3>Handoff Outputs</h3>
+        <ul>
+          <li>Stable Bob-mode behavior that visibly uses Bob's orchestration strength</li>
+          <li>Structured report save flow for the viewer and demo</li>
+          <li>Toolbox story that judges can understand quickly</li>
+        </ul>
+
+        <h3>Done When</h3>
+        <div class="checklist">
+          <div>Bob can see and call multiple local tools.</div>
+          <div>Bob can vary the call sequence by repo and request.</div>
+          <div>The final saved report contains evidence, Bob's decision, and the tool trace.</div>
+        </div>
       </section>
 
       <section class="section" id="analysis">
-        <h2>Analysis Engine</h2>
-        <h3>Goal</h3>
-        <p class="muted">Produce a resolution-oriented modernization report for one local Node.js repo or one selected subproject.</p>
+        <h2>Evidence Engine</h2>
+        <div class="workstream-meta">
+          <div class="meta-box">
+            <strong>Owner</strong>
+            <span class="owner-empty">Unassigned</span>
+          </div>
+          <div class="meta-box">
+            <strong>Job</strong>
+            <span>Build repo scanners, providers, static checks, and comparison outputs Bob can reason over.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Depends On</strong>
+            <span>Architecture and shared tool contracts.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Handoff To</strong>
+            <span>Bob + MCP, Viewer, Testing</span>
+          </div>
+        </div>
 
-        <h3>Inputs</h3>
-        <ul>
-          <li>Repo root path</li>
-          <li>Optional subdirectory target</li>
-          <li>Target Node version</li>
-          <li>Offline mode flag</li>
-        </ul>
+        <div class="subgrid">
+          <div class="subcard">
+            <h3>Scope</h3>
+            <ul>
+              <li>Analyze one local repo or one selected subdirectory.</li>
+              <li>Inspect runtime assumptions, dependencies, CI, deployment config, Docker, scripts, and source code.</li>
+              <li>Return composable evidence instead of a single final answer blob.</li>
+            </ul>
+          </div>
+          <div class="subcard">
+            <h3>Deliverables</h3>
+            <ul>
+              <li>repo scanner</li>
+              <li>provider abstraction layer</li>
+              <li>rule-based ranking engine</li>
+              <li>comparison outputs and report-writer support</li>
+            </ul>
+          </div>
+        </div>
 
         <h3>Files to Inspect</h3>
         <ul>
@@ -517,51 +1144,70 @@ Outputs:
           <li>source-level API and module-system analysis</li>
         </ul>
 
-        <h3>Analysis Rules</h3>
+        <h3>Output Rules</h3>
         <ul>
-          <li>Preserve the repo's detected package manager in generated commands.</li>
-          <li>Support <code>npm</code>, <code>pnpm</code>, and <code>yarn</code>.</li>
-          <li>Use <code>ts-morph</code> for JS/TS AST inspection.</li>
-          <li>Use heuristic scanning for shell scripts, Dockerfiles, YAML, and JSON config.</li>
-          <li>Use npm registry metadata and OSV through provider abstractions.</li>
-          <li>Support explicit offline mode by skipping live calls and continuing with local analysis + internal rules.</li>
-          <li>Use a small internal JSON knowledge base for compatibility and modernization rules.</li>
-          <li>Generate one recommended solution and multiple ranked same-ecosystem alternatives.</li>
-          <li>Do not generate code patches in MVP.</li>
+          <li>Every issue must have a stable identifier Bob can reference.</li>
+          <li>Every issue must include exact evidence locations, file references, and ranked same-ecosystem options.</li>
+          <li>Comparison results must be machine-readable so Bob can compare direct and staged paths cleanly.</li>
+          <li>Offline mode must skip live calls while keeping local evidence usable.</li>
         </ul>
 
-        <h3>Provider Layer</h3>
+        <h3>Handoff Outputs</h3>
         <ul>
-          <li><code>NpmRegistryProvider</code></li>
-          <li><code>OsvProvider</code></li>
-          <li>Typed responses only</li>
-          <li>Network failures isolated from core analysis</li>
-          <li>Caching-ready interface design</li>
+          <li>Evidence payloads Bob can cite in the chat report</li>
+          <li>Stable issue categories and file references for the viewer</li>
+          <li>Deterministic outputs for report artifacts and fixture tests</li>
         </ul>
 
-        <h3>Required Report Fields</h3>
-        <ul>
-          <li><code>reportId</code>, <code>createdAt</code>, <code>repoRoot</code>, <code>subdirectory</code></li>
-          <li><code>targetNodeVersion</code>, <code>detectedPackageManager</code>, <code>offlineMode</code></li>
-          <li><code>runtimeEvidence</code>, <code>externalDataStatus</code></li>
-          <li><code>issues[]</code> with issue, incompatibility reason, recommended solution, alternatives, files, evidence, commands, validation steps</li>
-          <li><code>implementationPlan[]</code></li>
-          <li><code>validationChecklist[]</code></li>
-        </ul>
-
-        <h3>Acceptance</h3>
+        <h3>Done When</h3>
         <div class="checklist">
           <div>Works on npm, pnpm, and yarn repos.</div>
           <div>Works in offline mode without crashing.</div>
-          <div>Writes deterministic latest + history + manifest outputs.</div>
-          <div>Every issue includes reason, solution, alternatives, files, and validation.</div>
+          <div>Returns deterministic evidence, issue IDs, and comparison outputs Bob can reason over.</div>
+          <div>Every finding includes reason, evidence, options, files, and validation.</div>
         </div>
       </section>
 
       <section class="section" id="ui">
         <h2>Viewer UI</h2>
-        <h3>Goal</h3>
-        <p class="muted">Render report JSON clearly for local real usage and hosted judge demo usage.</p>
+        <div class="workstream-meta">
+          <div class="meta-box">
+            <strong>Owner</strong>
+            <span class="owner-empty">Unassigned</span>
+          </div>
+          <div class="meta-box">
+            <strong>Job</strong>
+            <span>Build the local and hosted static viewer that shows Bob's recommendation and MCP evidence together.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Depends On</strong>
+            <span>Architecture and saved report contract from Bob + MCP.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Handoff To</strong>
+            <span>Deployment, Demo, Testing</span>
+          </div>
+        </div>
+
+        <div class="subgrid">
+          <div class="subcard">
+            <h3>Scope</h3>
+            <ul>
+              <li>Render Bob's recommendation, tool trace, and deep evidence in one generic viewer.</li>
+              <li>Support latest report loading and history selection.</li>
+              <li>Serve local assets and saved report JSON through a built-in Node server.</li>
+            </ul>
+          </div>
+          <div class="subcard">
+            <h3>Deliverables</h3>
+            <ul>
+              <li>viewer HTML, CSS, and JS</li>
+              <li>local viewer server</li>
+              <li>history selector</li>
+              <li>demo sample config path</li>
+            </ul>
+          </div>
+        </div>
 
         <h3>Viewer Model</h3>
         <ul>
@@ -577,154 +1223,231 @@ Outputs:
           <li>Serve viewer assets from a built-in local Node HTTP server.</li>
           <li>Load report manifest from <code>reports/index.json</code>.</li>
           <li>Load report detail JSON from latest or history paths.</li>
-          <li>Auto-open local viewer URL after analysis by default.</li>
-          <li>Allow auto-open disable through config or tool input.</li>
+          <li>Auto-open local viewer URL after report save by default.</li>
+          <li>Show Bob's recommendation first, then evidence, then plan, validation, and tool trace.</li>
           <li>Support latest report display and history selector.</li>
-          <li>Show repo summary, target version, package manager, offline status, issues, solutions, alternatives, files, evidence, commands, implementation plan, and validation steps.</li>
         </ul>
 
         <h3>Hosted Demo Viewer Requirements</h3>
         <ul>
           <li>Deploy static assets only.</li>
           <li>Use committed sample report data only.</li>
-          <li>No live access to local repo folders.</li>
-          <li>No live MCP connection.</li>
-          <li>Use a demo config file that points to sample manifest JSON.</li>
+          <li>No live repo access and no live MCP connection.</li>
+          <li>Make the Bob-versus-MCP split obvious even without a live Bob demo.</li>
         </ul>
 
-        <h3>Local Viewer Server Requirements</h3>
+        <h3>Handoff Outputs</h3>
         <ul>
-          <li>Implement with Node built-in <code>http</code>.</li>
-          <li>Serve viewer assets and report JSON.</li>
-          <li>Expose a stable local URL.</li>
-          <li>Provide readable error states for missing report files.</li>
-          <li>Support browser auto-open on macOS, Linux, and Windows.</li>
+          <li>Stable viewer routes and asset structure for deployment</li>
+          <li>Local server start command for report-viewer launch flow</li>
+          <li>Hosted static bundle for judges</li>
         </ul>
 
-        <h3>UI Structure</h3>
-        <ul>
-          <li>Navigation sections: summary, issues, implementation plan, validation, history</li>
-          <li>Collapsible issue cards</li>
-          <li>Copyable file paths and commands</li>
-          <li>History selector without full page reload when practical</li>
-        </ul>
+        <h3>Done When</h3>
+        <div class="checklist">
+          <div>Latest report loads automatically from the local server.</div>
+          <div>User can switch to previous reports from history.</div>
+          <div>Viewer clearly separates Bob's recommendation from MCP evidence while keeping them connected.</div>
+        </div>
       </section>
 
       <section class="section" id="testing">
         <h2>Testing</h2>
-        <h3>Goal</h3>
-        <p class="muted">Keep the analyzer, report outputs, MCP orchestration, and viewer stable for live demo.</p>
+        <div class="workstream-meta">
+          <div class="meta-box">
+            <strong>Owner</strong>
+            <span class="owner-empty">Unassigned</span>
+          </div>
+          <div class="meta-box">
+            <strong>Job</strong>
+            <span>Protect the evidence contracts, report persistence, adaptive orchestration, and viewer rendering.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Depends On</strong>
+            <span>All engineering workstreams.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Handoff To</strong>
+            <span>Final QA and demo confidence</span>
+          </div>
+        </div>
 
-        <h3>Tooling</h3>
-        <ul>
-          <li><code>vitest</code></li>
-        </ul>
+        <div class="subgrid">
+          <div class="subcard">
+            <h3>Scope</h3>
+            <ul>
+              <li>Validate schemas, evidence outputs, saved reports, viewer rendering, and offline behavior.</li>
+              <li>Protect report merge logic for MCP evidence plus Bob decision fields.</li>
+              <li>Protect tool traces and comparison outputs.</li>
+            </ul>
+          </div>
+          <div class="subcard">
+            <h3>Deliverables</h3>
+            <ul>
+              <li>fixture repos</li>
+              <li>unit and integration tests</li>
+              <li>report snapshots</li>
+              <li>viewer DOM tests</li>
+            </ul>
+          </div>
+        </div>
 
-        <h3>Required Test Layers</h3>
+        <h3>Test Layers</h3>
         <ul>
-          <li>schema validation tests</li>
-          <li>knowledge base rule tests</li>
+          <li>shared schema validation tests</li>
           <li>provider mapping and offline tests</li>
-          <li>package manager detection tests</li>
-          <li>runtime evidence tests</li>
-          <li>AST detection tests</li>
-          <li>solution ranking tests</li>
-          <li>report writer tests</li>
-          <li>MCP input validation and orchestration tests</li>
-          <li>viewer manifest loading and history selector tests</li>
+          <li>analysis evidence tests</li>
+          <li>MCP tool validation and save/open flow tests</li>
+          <li>viewer rendering tests for Bob decision, evidence, history, and tool trace</li>
         </ul>
 
-        <h3>Required Fixtures</h3>
-        <ul>
-          <li>npm repo fixture</li>
-          <li>pnpm repo fixture</li>
-          <li>yarn repo fixture</li>
-          <li>Docker mismatch fixture</li>
-          <li>GitHub Actions mismatch fixture</li>
-          <li>deployment config mismatch fixture</li>
-          <li>source-level incompatibility fixture</li>
-          <li>offline fixture with provider stubs</li>
-        </ul>
-
-        <h3>Acceptance</h3>
+        <h3>Done When</h3>
         <div class="checklist">
-          <div>Schema contracts are validated by tests.</div>
-          <div>Report JSON is deterministic for snapshots.</div>
+          <div>All schema contracts are validated by tests.</div>
+          <div>Report JSON is stable for fixture snapshots.</div>
           <div>Viewer renders fixture reports correctly.</div>
-          <div>Offline mode passes without network access.</div>
+          <div>Saved reports preserve evidence, Bob decision fields, and validation content.</div>
         </div>
       </section>
 
       <section class="section" id="deployment">
         <h2>Deployment</h2>
-        <h3>Goal</h3>
-        <p class="muted">Package the local Bob tool cleanly and publish a static viewer for judges.</p>
+        <div class="workstream-meta">
+          <div class="meta-box">
+            <strong>Owner</strong>
+            <span class="owner-empty">Unassigned</span>
+          </div>
+          <div class="meta-box">
+            <strong>Job</strong>
+            <span>Package local Bob setup, MCP config flow, and hosted static viewer publishing.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Depends On</strong>
+            <span>Viewer assets, MCP build output, and sample report generation.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Handoff To</strong>
+            <span>Demo &amp; Docs</span>
+          </div>
+        </div>
 
-        <h3>Local Tool Requirements</h3>
+        <div class="subgrid">
+          <div class="subcard">
+            <h3>Scope</h3>
+            <ul>
+              <li>Document local build and Bob setup.</li>
+              <li>Prepare the hosted static viewer deployment.</li>
+              <li>Provide a sample report flow that proves the Bob-first artifact model.</li>
+            </ul>
+          </div>
+          <div class="subcard">
+            <h3>Deliverables</h3>
+            <ul>
+              <li>local build instructions</li>
+              <li>Bob config instructions</li>
+              <li>hosted static viewer deployment</li>
+              <li>sample report publish flow</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Operational Rules</h3>
         <ul>
-          <li><code>npm install</code> installs all workspaces.</li>
           <li><code>npm run build</code> compiles MCP and analysis packages.</li>
-          <li>Bob MCP config points to the built local server entrypoint.</li>
-          <li>Viewer server is part of the repo, not an external global dependency.</li>
+          <li>Bob config points to the built local MCP entrypoint.</li>
           <li>Core local analysis does not require secrets.</li>
+          <li>Hosted demo viewer contains static sample artifacts only.</li>
         </ul>
 
-        <h3>Hosted Demo Viewer Requirements</h3>
-        <ul>
-          <li>Deploy to <code>Vercel or Netlify</code>.</li>
-          <li>Implementation owner chooses the host.</li>
-          <li>Deploy only static viewer assets and sample reports.</li>
-          <li>Do not expose real local repo paths in sample data.</li>
-        </ul>
-
-        <h3>Operational Constraints</h3>
-        <ul>
-          <li>No database</li>
-          <li>No backend hosting</li>
-          <li>No live repo access from hosted demo viewer</li>
-          <li>Network access optional for npm and OSV enrichment</li>
-        </ul>
+        <h3>Done When</h3>
+        <div class="checklist">
+          <div>Local Bob integration can be set up from docs.</div>
+          <div>Hosted viewer opens without backend dependencies.</div>
+          <div>Sample report can be refreshed from a real generated artifact.</div>
+        </div>
       </section>
 
       <section class="section" id="demo-docs">
         <h2>Demo &amp; Docs</h2>
-        <h3>Goal</h3>
-        <p class="muted">Make setup, judging, and live demo straightforward.</p>
+        <div class="workstream-meta">
+          <div class="meta-box">
+            <strong>Owner</strong>
+            <span class="owner-empty">Unassigned</span>
+          </div>
+          <div class="meta-box">
+            <strong>Job</strong>
+            <span>Tell a clear Bob-first story and make the workflow easy to install, demo, and judge.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Depends On</strong>
+            <span>MCP, Viewer, Deployment, and at least one stable sample report.</span>
+          </div>
+          <div class="meta-box">
+            <strong>Handoff To</strong>
+            <span>Final presentation and submission</span>
+          </div>
+        </div>
 
-        <h3>Required Docs</h3>
+        <div class="subgrid">
+          <div class="subcard">
+            <h3>Docs Must Cover</h3>
+            <ul>
+              <li>install and build</li>
+              <li>Bob MCP config</li>
+              <li>custom mode setup</li>
+              <li>running adaptive analysis</li>
+              <li>saving the report</li>
+              <li>opening the local viewer</li>
+            </ul>
+          </div>
+          <div class="subcard">
+            <h3>Demo Must Show</h3>
+            <ul>
+              <li>local repo in Bob</li>
+              <li>Bob asking at least one meaningful scoping question</li>
+              <li>multiple MCP tool calls</li>
+              <li>Bob choosing a migration path</li>
+              <li>viewer auto-open</li>
+              <li>issue list, plan, and validation checklist</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Judge-Facing Message</h3>
         <ul>
-          <li>README with project overview and repo structure</li>
-          <li>Bob setup guide</li>
-          <li>local usage guide</li>
-          <li>hosted demo guide</li>
-          <li>sample prompt set</li>
-          <li>demo script</li>
-          <li>known limitations section</li>
+          <li>Bob is the modernization architect.</li>
+          <li>MCP is Bob's repo intelligence layer.</li>
+          <li>The product value comes from Bob making evidence-backed upgrade decisions, not from one giant tool doing everything for Bob.</li>
         </ul>
 
-        <h3>Demo Flow</h3>
-        <ol>
-          <li>Open a local repo in Bob.</li>
-          <li>Select <code>Modernization Architect</code>.</li>
-          <li>Ask for analysis against a target Node version.</li>
-          <li>Let Bob call the MCP tool.</li>
-          <li>Show the viewer auto-open with issues and ranked solutions.</li>
-          <li>Show implementation plan and validation checklist.</li>
-          <li>Show hosted demo viewer as judge-friendly static artifact.</li>
-        </ol>
+        <h3>Done When</h3>
+        <div class="checklist">
+          <div>A new developer can run the tool from docs only.</div>
+          <div>Judges can understand the hosted demo viewer without running Bob.</div>
+          <div>The live demo clearly shows Bob leading the workflow.</div>
+        </div>
       </section>
 
       <section class="section" id="roadmap">
         <h2>Post-Hackathon Roadmap</h2>
-        <ul>
-          <li>Remote HTTP MCP server</li>
-          <li>Low-risk patch generation</li>
-          <li>Package replacement suggestions across ecosystems</li>
-          <li>Multi-subproject monorepo reports</li>
-          <li>Persistent report history and search</li>
-          <li>Additional advisory sources</li>
-          <li>Richer repo comparison and migration progress tracking</li>
-        </ul>
+        <div class="mini-grid">
+          <div class="mini">
+            <strong>Better Automation</strong>
+            <span>Patch generation for low-risk changes after Bob confirms the plan.</span>
+          </div>
+          <div class="mini">
+            <strong>Deeper Analysis</strong>
+            <span>Multi-subproject monorepo reports, richer target comparisons, and expanded advisory sources.</span>
+          </div>
+          <div class="mini">
+            <strong>Collaboration</strong>
+            <span>Persistent report history, search, team sharing, and collaboration features.</span>
+          </div>
+          <div class="mini">
+            <strong>Future Transport</strong>
+            <span>Optional remote `HTTP` MCP server after the hackathon, not in the MVP.</span>
+          </div>
+        </div>
       </section>
     </main>
   </div>
