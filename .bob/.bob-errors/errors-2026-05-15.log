@@ -1,0 +1,18 @@
+
+================================================================================
+ERROR LOGGED: 2026-05-15T14:56:49.010Z
+================================================================================
+Error Name: Error
+Error Message: EPERM: operation not permitted, mkdir '/Users/bilolbekrayimov/.bob/tmp/178451415fa592df474442923f68ed1a3e855de4b2360ded6ad3ecb45637e00d/chats'
+
+Stack Trace:
+Error: EPERM: operation not permitted, mkdir '/Users/bilolbekrayimov/.bob/tmp/178451415fa592df474442923f68ed1a3e855de4b2360ded6ad3ecb45637e00d/chats'
+    at Object.mkdirSync (node:fs:1349:26)
+    at hY.initialize (file:///Users/bilolbekrayimov/.nvm/versions/node/v24.12.0/lib/node_modules/bobshell/bundle/bob.js:2457:13680)
+    at new gY (file:///Users/bilolbekrayimov/.nvm/versions/node/v24.12.0/lib/node_modules/bobshell/bundle/bob.js:2457:21192)
+    at nwe.startChat (file:///Users/bilolbekrayimov/.nvm/versions/node/v24.12.0/lib/node_modules/bobshell/bundle/bob.js:2793:10087)
+    at async nwe.initialize (file:///Users/bilolbekrayimov/.nvm/versions/node/v24.12.0/lib/node_modules/bobshell/bundle/bob.js:2793:8548)
+    at async j3.initialize (file:///Users/bilolbekrayimov/.nvm/versions/node/v24.12.0/lib/node_modules/bobshell/bundle/bob.js:3480:27619)
+    at async gBi (file:///Users/bilolbekrayimov/.nvm/versions/node/v24.12.0/lib/node_modules/bobshell/bundle/bob.js:4646:1382)
+================================================================================
+

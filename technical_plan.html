@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modernization Navigator Technical Plan</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --panel-alt: #eef3f9;
+      --text: #172433;
+      --muted: #5d6b7c;
+      --line: #d5deea;
+      --accent: #0f62fe;
+      --accent-soft: #dce8ff;
+      --shadow: 0 12px 28px rgba(14, 33, 63, 0.08);
+      --radius: 18px;
+      --sidebar-width: 270px;
+      --max: 1500px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, #ffffff 0, #f4f7fb 45%, #edf2f8 100%);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code,
+    pre {
+      font-family: var(--mono);
+    }
+
+    .layout {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      gap: 24px;
+      padding: 24px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .sidebar h1 {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+      line-height: 1.3;
+    }
+
+    .sidebar p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.45;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--text);
+      background: transparent;
+      border: 1px solid transparent;
+      font-size: 0.95rem;
+    }
+
+    .nav a:hover {
+      background: var(--panel-alt);
+      border-color: var(--line);
+      text-decoration: none;
+    }
+
+    .main {
+      display: grid;
+      gap: 24px;
+    }
+
+    .hero,
+    .section,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+    }
+
+    .hero h2 {
+      margin: 0 0 10px;
+      font-size: 1.8rem;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .pill-row {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid.cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      padding: 20px;
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .section {
+      padding: 28px;
+    }
+
+    .section h2 {
+      margin: 0 0 16px;
+      font-size: 1.35rem;
+    }
+
+    .section h3 {
+      margin: 20px 0 10px;
+      font-size: 1rem;
+    }
+
+    .section ul,
+    .section ol {
+      margin: 10px 0 0 20px;
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .section li + li {
+      margin-top: 6px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .pre {
+      margin: 12px 0 0;
+      background: #0f1724;
+      color: #eaf2ff;
+      border-radius: 16px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .mini-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 18px;
+    }
+
+    .mini {
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .mini strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.92rem;
+    }
+
+    .mini span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .checklist div {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .grid.cols-2,
+      .grid.cols-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Modernization Navigator</h1>
+      <p>Detailed technical plan for the MVP and immediate post-hackathon path.</p>
+      <nav class="nav">
+        <a href="#overview">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#mcp">MCP Integration</a>
+        <a href="#analysis">Analysis Engine</a>
+        <a href="#ui">Viewer UI</a>
+        <a href="#testing">Testing</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#demo-docs">Demo &amp; Docs</a>
+        <a href="#roadmap">Roadmap</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="hero" id="overview">
+        <h2>Technical Plan</h2>
+        <p>
+          Modernization Navigator is a local IBM Bob extension for Node.js repo modernization analysis.
+          Bob is the main interface. A local STDIO MCP server runs analysis, writes JSON reports,
+          starts a built-in viewer server, and opens a human-readable static report page.
+        </p>
+        <div class="pill-row">
+          <span class="pill">Node.js + TypeScript</span>
+          <span class="pill">Local STDIO MCP</span>
+          <span class="pill">Plain HTML/CSS/JS Viewer</span>
+          <span class="pill">Stateless</span>
+          <span class="pill">npm + pnpm + yarn</span>
+          <span class="pill">npm + OSV + internal rules</span>
+        </div>
+      </section>
+
+      <section class="grid cols-3">
+        <div class="card">
+          <h3>Primary Workflow</h3>
+          <p>User works in Bob. Bob calls one MCP tool. The tool writes report JSON and opens the local viewer.</p>
+        </div>
+        <div class="card">
+          <h3>Real Product Surface</h3>
+          <p>Local Bob workflow + local viewer server. No hosted backend. No database.</p>
+        </div>
+        <div class="card">
+          <h3>Demo Surface</h3>
+          <p>Hosted static viewer for judges using committed sample reports. Hosting: Vercel or Netlify.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Locked MVP Decisions</h2>
+        <div class="mini-grid">
+          <div class="mini">
+            <strong>Scope</strong>
+            <span>Any local Node.js repo, optional subdirectory, single subproject analysis only.</span>
+          </div>
+          <div class="mini">
+            <strong>Output</strong>
+            <span>JSON report only. Latest report + timestamped history + manifest index.</span>
+          </div>
+          <div class="mini">
+            <strong>Recommendations</strong>
+            <span>Issue, incompatibility reason, recommended solution, ranked same-ecosystem alternatives.</span>
+          </div>
+          <div class="mini">
+            <strong>Analysis</strong>
+            <span>Repo scanning, config scanning, lockfile inspection, JS/TS AST analysis, offline mode.</span>
+          </div>
+          <div class="mini">
+            <strong>Viewer</strong>
+            <span>Generic static viewer page, built-in local server, history selector, auto-open by default.</span>
+          </div>
+          <div class="mini">
+            <strong>Bob Integration</strong>
+            <span>One MCP tool and one focused custom mode with analysis + implementation guidance.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="architecture">
+        <h2>Architecture</h2>
+        <h3>Goal</h3>
+        <p class="muted">Define repo layout, package boundaries, shared contracts, and runtime responsibilities.</p>
+
+        <h3>Monorepo Layout</h3>
+        <pre class="pre">modernization-navigator/
+  .bob/
+    mcp.json
+    custom-modes/modernization-architect.md
+  apps/
+    viewer/
+      index.html
+      styles.css
+      app.js
+      viewer-config.demo.js
+      sample/
+  packages/
+    shared/
+    knowledge-base/
+    providers/
+    analysis-engine/
+    viewer-server/
+    mcp-server/
+  reports/
+    latest/
+    history/
+    index.json
+  scripts/
+    sync-demo-sample.ts</pre>
+
+        <h3>Technical Requirements</h3>
+        <ul>
+          <li>Use <code>npm</code> workspaces with <code>apps/*</code> and <code>packages/*</code>.</li>
+          <li>Use <code>tsc</code> for build and <code>tsx</code> for local TypeScript execution.</li>
+          <li>Put all Zod schemas in <code>packages/shared</code>.</li>
+          <li>Infer TypeScript types from Zod schemas. Do not maintain duplicate runtime and compile-time contracts.</li>
+          <li>Keep analysis logic pure where possible. File IO and network IO must stay in thin boundary modules.</li>
+          <li>Keep knowledge base JSON files separate from analysis code.</li>
+          <li>Keep viewer server independent from MCP transport logic.</li>
+          <li>Use <code>eslint</code> and <code>prettier</code> at repo root.</li>
+        </ul>
+
+        <h3>Required Scripts</h3>
+        <ul>
+          <li><code>npm run build</code></li>
+          <li><code>npm run typecheck</code></li>
+          <li><code>npm run lint</code></li>
+          <li><code>npm run test</code></li>
+          <li><code>npm run viewer:serve</code></li>
+          <li><code>npm run viewer:demo-sync</code></li>
+          <li><code>npm run mcp:dev</code></li>
+        </ul>
+
+        <h3>Acceptance</h3>
+        <div class="checklist">
+          <div>One install command sets up the full repo.</div>
+          <div>One build command compiles all packages.</div>
+          <div>Shared schemas are the single source of report truth.</div>
+        </div>
+      </section>
+
+      <section class="section" id="mcp">
+        <h2>MCP Integration</h2>
+        <h3>Goal</h3>
+        <p class="muted">Expose one local Bob tool through STDIO and pair it with one focused custom mode.</p>
+
+        <h3>Deliverables</h3>
+        <ul>
+          <li>Local <code>STDIO</code> MCP server</li>
+          <li>Bob MCP config</li>
+          <li>Bob custom mode: <code>Modernization Architect</code></li>
+          <li>One orchestration tool handler</li>
+          <li>Viewer auto-open integration</li>
+        </ul>
+
+        <h3>Tool Contract</h3>
+        <pre class="pre">Tool name: analyze_modernization_target
+
+Inputs:
+  targetNodeVersion: string
+  subdirectory?: string
+  offline?: boolean
+  autoOpenViewer?: boolean
+
+Outputs:
+  reportId: string
+  reportPath: string
+  viewerUrl: string
+  repoRoot: string
+  subdirectory?: string
+  targetNodeVersion: string
+  issueCount: number
+  issueCategories: string[]
+  externalDataStatus: object</pre>
+
+        <h3>Technical Requirements</h3>
+        <ul>
+          <li>Use local STDIO transport only.</li>
+          <li>Validate tool input with <code>zod</code>.</li>
+          <li>Accept exact Node versions and major-only versions.</li>
+          <li>Treat the user-requested target version as authoritative.</li>
+          <li>Use repo-declared Node versions only as current-state evidence.</li>
+          <li>Resolve repo root from the Bob-opened local workspace.</li>
+          <li>Restrict analysis to an optional selected subdirectory when provided.</li>
+          <li>Ensure the local viewer server is running before tool return.</li>
+          <li>Auto-open the viewer by default and allow opt-out.</li>
+          <li>Return summary metadata to Bob, not the full raw report.</li>
+        </ul>
+
+        <h3>Custom Mode Requirements</h3>
+        <ul>
+          <li>Ask for target Node version if missing.</li>
+          <li>Ask for subdirectory only when needed.</li>
+          <li>Call the tool once per analysis request.</li>
+          <li>Respond with current state summary, issues, ordered implementation plan, and validation checklist.</li>
+          <li>Do not promise code patches in MVP.</li>
+          <li>Do not suggest package replacements outside report data.</li>
+        </ul>
+      </section>
+
+      <section class="section" id="analysis">
+        <h2>Analysis Engine</h2>
+        <h3>Goal</h3>
+        <p class="muted">Produce a resolution-oriented modernization report for one local Node.js repo or one selected subproject.</p>
+
+        <h3>Inputs</h3>
+        <ul>
+          <li>Repo root path</li>
+          <li>Optional subdirectory target</li>
+          <li>Target Node version</li>
+          <li>Offline mode flag</li>
+        </ul>
+
+        <h3>Files to Inspect</h3>
+        <ul>
+          <li><code>package.json</code></li>
+          <li><code>package-lock.json</code>, <code>pnpm-lock.yaml</code>, <code>yarn.lock</code></li>
+          <li><code>.nvmrc</code>, <code>.node-version</code></li>
+          <li><code>Dockerfile*</code></li>
+          <li><code>.github/workflows/*.yml</code> and <code>*.yaml</code></li>
+          <li><code>vercel.json</code>, <code>netlify.toml</code>, <code>Procfile</code></li>
+          <li>shell scripts in common script locations</li>
+          <li>JS/TS source files</li>
+          <li><code>tsconfig*.json</code></li>
+        </ul>
+
+        <h3>Detection Modules</h3>
+        <ul>
+          <li>package manager detection</li>
+          <li>runtime evidence aggregation</li>
+          <li>dependency and lockfile analysis</li>
+          <li>Docker runtime analysis</li>
+          <li>GitHub Actions runtime analysis</li>
+          <li>deployment config analysis</li>
+          <li>shell script runtime analysis</li>
+          <li>source-level API and module-system analysis</li>
+        </ul>
+
+        <h3>Analysis Rules</h3>
+        <ul>
+          <li>Preserve the repo's detected package manager in generated commands.</li>
+          <li>Support <code>npm</code>, <code>pnpm</code>, and <code>yarn</code>.</li>
+          <li>Use <code>ts-morph</code> for JS/TS AST inspection.</li>
+          <li>Use heuristic scanning for shell scripts, Dockerfiles, YAML, and JSON config.</li>
+          <li>Use npm registry metadata and OSV through provider abstractions.</li>
+          <li>Support explicit offline mode by skipping live calls and continuing with local analysis + internal rules.</li>
+          <li>Use a small internal JSON knowledge base for compatibility and modernization rules.</li>
+          <li>Generate one recommended solution and multiple ranked same-ecosystem alternatives.</li>
+          <li>Do not generate code patches in MVP.</li>
+        </ul>
+
+        <h3>Provider Layer</h3>
+        <ul>
+          <li><code>NpmRegistryProvider</code></li>
+          <li><code>OsvProvider</code></li>
+          <li>Typed responses only</li>
+          <li>Network failures isolated from core analysis</li>
+          <li>Caching-ready interface design</li>
+        </ul>
+
+        <h3>Required Report Fields</h3>
+        <ul>
+          <li><code>reportId</code>, <code>createdAt</code>, <code>repoRoot</code>, <code>subdirectory</code></li>
+          <li><code>targetNodeVersion</code>, <code>detectedPackageManager</code>, <code>offlineMode</code></li>
+          <li><code>runtimeEvidence</code>, <code>externalDataStatus</code></li>
+          <li><code>issues[]</code> with issue, incompatibility reason, recommended solution, alternatives, files, evidence, commands, validation steps</li>
+          <li><code>implementationPlan[]</code></li>
+          <li><code>validationChecklist[]</code></li>
+        </ul>
+
+        <h3>Acceptance</h3>
+        <div class="checklist">
+          <div>Works on npm, pnpm, and yarn repos.</div>
+          <div>Works in offline mode without crashing.</div>
+          <div>Writes deterministic latest + history + manifest outputs.</div>
+          <div>Every issue includes reason, solution, alternatives, files, and validation.</div>
+        </div>
+      </section>
+
+      <section class="section" id="ui">
+        <h2>Viewer UI</h2>
+        <h3>Goal</h3>
+        <p class="muted">Render report JSON clearly for local real usage and hosted judge demo usage.</p>
+
+        <h3>Viewer Model</h3>
+        <ul>
+          <li>Plain HTML, CSS, and JavaScript only</li>
+          <li>One generic viewer page</li>
+          <li>One local data source and one demo data source</li>
+          <li>Light theme only</li>
+          <li>No framework</li>
+        </ul>
+
+        <h3>Local Viewer Requirements</h3>
+        <ul>
+          <li>Serve viewer assets from a built-in local Node HTTP server.</li>
+          <li>Load report manifest from <code>reports/index.json</code>.</li>
+          <li>Load report detail JSON from latest or history paths.</li>
+          <li>Auto-open local viewer URL after analysis by default.</li>
+          <li>Allow auto-open disable through config or tool input.</li>
+          <li>Support latest report display and history selector.</li>
+          <li>Show repo summary, target version, package manager, offline status, issues, solutions, alternatives, files, evidence, commands, implementation plan, and validation steps.</li>
+        </ul>
+
+        <h3>Hosted Demo Viewer Requirements</h3>
+        <ul>
+          <li>Deploy static assets only.</li>
+          <li>Use committed sample report data only.</li>
+          <li>No live access to local repo folders.</li>
+          <li>No live MCP connection.</li>
+          <li>Use a demo config file that points to sample manifest JSON.</li>
+        </ul>
+
+        <h3>Local Viewer Server Requirements</h3>
+        <ul>
+          <li>Implement with Node built-in <code>http</code>.</li>
+          <li>Serve viewer assets and report JSON.</li>
+          <li>Expose a stable local URL.</li>
+          <li>Provide readable error states for missing report files.</li>
+          <li>Support browser auto-open on macOS, Linux, and Windows.</li>
+        </ul>
+
+        <h3>UI Structure</h3>
+        <ul>
+          <li>Navigation sections: summary, issues, implementation plan, validation, history</li>
+          <li>Collapsible issue cards</li>
+          <li>Copyable file paths and commands</li>
+          <li>History selector without full page reload when practical</li>
+        </ul>
+      </section>
+
+      <section class="section" id="testing">
+        <h2>Testing</h2>
+        <h3>Goal</h3>
+        <p class="muted">Keep the analyzer, report outputs, MCP orchestration, and viewer stable for live demo.</p>
+
+        <h3>Tooling</h3>
+        <ul>
+          <li><code>vitest</code></li>
+        </ul>
+
+        <h3>Required Test Layers</h3>
+        <ul>
+          <li>schema validation tests</li>
+          <li>knowledge base rule tests</li>
+          <li>provider mapping and offline tests</li>
+          <li>package manager detection tests</li>
+          <li>runtime evidence tests</li>
+          <li>AST detection tests</li>
+          <li>solution ranking tests</li>
+          <li>report writer tests</li>
+          <li>MCP input validation and orchestration tests</li>
+          <li>viewer manifest loading and history selector tests</li>
+        </ul>
+
+        <h3>Required Fixtures</h3>
+        <ul>
+          <li>npm repo fixture</li>
+          <li>pnpm repo fixture</li>
+          <li>yarn repo fixture</li>
+          <li>Docker mismatch fixture</li>
+          <li>GitHub Actions mismatch fixture</li>
+          <li>deployment config mismatch fixture</li>
+          <li>source-level incompatibility fixture</li>
+          <li>offline fixture with provider stubs</li>
+        </ul>
+
+        <h3>Acceptance</h3>
+        <div class="checklist">
+          <div>Schema contracts are validated by tests.</div>
+          <div>Report JSON is deterministic for snapshots.</div>
+          <div>Viewer renders fixture reports correctly.</div>
+          <div>Offline mode passes without network access.</div>
+        </div>
+      </section>
+
+      <section class="section" id="deployment">
+        <h2>Deployment</h2>
+        <h3>Goal</h3>
+        <p class="muted">Package the local Bob tool cleanly and publish a static viewer for judges.</p>
+
+        <h3>Local Tool Requirements</h3>
+        <ul>
+          <li><code>npm install</code> installs all workspaces.</li>
+          <li><code>npm run build</code> compiles MCP and analysis packages.</li>
+          <li>Bob MCP config points to the built local server entrypoint.</li>
+          <li>Viewer server is part of the repo, not an external global dependency.</li>
+          <li>Core local analysis does not require secrets.</li>
+        </ul>
+
+        <h3>Hosted Demo Viewer Requirements</h3>
+        <ul>
+          <li>Deploy to <code>Vercel or Netlify</code>.</li>
+          <li>Implementation owner chooses the host.</li>
+          <li>Deploy only static viewer assets and sample reports.</li>
+          <li>Do not expose real local repo paths in sample data.</li>
+        </ul>
+
+        <h3>Operational Constraints</h3>
+        <ul>
+          <li>No database</li>
+          <li>No backend hosting</li>
+          <li>No live repo access from hosted demo viewer</li>
+          <li>Network access optional for npm and OSV enrichment</li>
+        </ul>
+      </section>
+
+      <section class="section" id="demo-docs">
+        <h2>Demo &amp; Docs</h2>
+        <h3>Goal</h3>
+        <p class="muted">Make setup, judging, and live demo straightforward.</p>
+
+        <h3>Required Docs</h3>
+        <ul>
+          <li>README with project overview and repo structure</li>
+          <li>Bob setup guide</li>
+          <li>local usage guide</li>
+          <li>hosted demo guide</li>
+          <li>sample prompt set</li>
+          <li>demo script</li>
+          <li>known limitations section</li>
+        </ul>
+
+        <h3>Demo Flow</h3>
+        <ol>
+          <li>Open a local repo in Bob.</li>
+          <li>Select <code>Modernization Architect</code>.</li>
+          <li>Ask for analysis against a target Node version.</li>
+          <li>Let Bob call the MCP tool.</li>
+          <li>Show the viewer auto-open with issues and ranked solutions.</li>
+          <li>Show implementation plan and validation checklist.</li>
+          <li>Show hosted demo viewer as judge-friendly static artifact.</li>
+        </ol>
+      </section>
+
+      <section class="section" id="roadmap">
+        <h2>Post-Hackathon Roadmap</h2>
+        <ul>
+          <li>Remote HTTP MCP server</li>
+          <li>Low-risk patch generation</li>
+          <li>Package replacement suggestions across ecosystems</li>
+          <li>Multi-subproject monorepo reports</li>
+          <li>Persistent report history and search</li>
+          <li>Additional advisory sources</li>
+          <li>Richer repo comparison and migration progress tracking</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
