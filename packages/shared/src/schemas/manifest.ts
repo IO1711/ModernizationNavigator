@@ -1,14 +1,26 @@
 import { z } from 'zod';
 
-export const reportManifestSchema = z.object({
-  latestReportPath: z.string(),
-  history: z.array(
-    z.object({
-      reportId: z.string(),
-      createdAt: z.string(),
-      reportPath: z.string(),
-      requestedTargetNodeVersion: z.string(),
-      subdirectory: z.string().optional()
-    })
-  )
-});
+import {
+  isoTimestampSchema,
+  reportIdSchema,
+  reportPathSchema,
+  safeSubdirectorySchema,
+  targetNodeVersionSchema
+} from './primitives';
+
+export const reportManifestEntrySchema = z
+  .object({
+    reportId: reportIdSchema,
+    createdAt: isoTimestampSchema,
+    reportPath: reportPathSchema,
+    requestedTargetNodeVersion: targetNodeVersionSchema,
+    subdirectory: safeSubdirectorySchema.optional()
+  })
+  .strict();
+
+export const reportManifestSchema = z
+  .object({
+    latestReportPath: reportPathSchema,
+    history: z.array(reportManifestEntrySchema)
+  })
+  .strict();

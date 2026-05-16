@@ -1,0 +1,14 @@
+{
+  "comparedPaths": [
+    {
+      "label": "",
+      "targetVersion": "",
+      "riskScore": "high",
+      "effortScore": 2,
+      "blockers": [
+        ""
+      ]
+    }
+  ],
+  "recommendedPathCandidate": ""
+}

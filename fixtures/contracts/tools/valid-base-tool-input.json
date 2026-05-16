@@ -1,0 +1,6 @@
+{
+  "repoRoot": "/workspace/demo-modernization-app",
+  "subdirectory": "services/api",
+  "targetNodeVersion": "20",
+  "offline": false
+}

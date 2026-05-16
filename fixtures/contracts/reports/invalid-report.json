@@ -1,0 +1,49 @@
+{
+  "reportId": "invalid-report",
+  "createdAt": "yesterday",
+  "repoRoot": "/workspace/invalid-service",
+  "subdirectory": "../escape",
+  "requestedTargetNodeVersion": "20",
+  "evaluatedTargetNodeVersions": [
+    "20"
+  ],
+  "detectedPackageManager": "pnpm",
+  "offlineMode": false,
+  "externalDataStatus": {
+    "npmRegistry": "used",
+    "osv": "used",
+    "notes": [
+      "This fixture is intentionally invalid."
+    ]
+  },
+  "toolTrace": [
+    {
+      "toolName": "wrong_tool_name",
+      "purpose": "Break validation",
+      "status": "success",
+      "startedAt": "2026-05-16T13:00:00.000Z",
+      "finishedAt": "2026-05-16T13:00:01.000Z",
+      "resultSummary": "Invalid tool name."
+    }
+  ],
+  "runtimeEvidence": [
+    {
+      "source": "package.json",
+      "filePath": "/absolute/path/package.json",
+      "value": "20",
+      "kind": "engines"
+    }
+  ],
+  "issues": [],
+  "bobDecision": {
+    "summary": "Invalid fixture",
+    "selectedTargetPath": "None",
+    "rationale": "This should fail.",
+    "prioritizedRisks": [],
+    "chosenSolutions": [],
+    "tradeoffs": []
+  },
+  "bobExecutionPlan": [],
+  "validationChecklist": [],
+  "unexpectedField": true
+}
