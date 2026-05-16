@@ -69,6 +69,11 @@ async function handleRequest(
     return;
   }
 
+  if (pathname === '/index.demo.html') {
+    await serveFile(response, resolveViewerAssetPath('index.demo.html'));
+    return;
+  }
+
   if (pathname === '/styles.css' || pathname === '/app.js' || pathname === '/viewer-config.demo.js') {
     await serveFile(response, resolveViewerAssetPath(pathname.slice(1)));
     return;

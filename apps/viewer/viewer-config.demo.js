@@ -1,5 +1,5 @@
 window.__VIEWER_CONFIG__ = {
-  sampleMode: false,
+  sampleMode: true,
   manifestPath: '/reports/index.json',
   sampleManifestPath: '/sample/index.json'
 };
