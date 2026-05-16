@@ -268,6 +268,20 @@
       margin-top: 16px;
     }
 
+    .callout {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .callout strong {
+      color: var(--text);
+    }
+
     .subcard {
       padding: 18px;
       border-radius: 16px;
@@ -1044,6 +1058,10 @@ open-report-viewer.ts
         <span class="eyebrow">Step 10</span>
         <h2>4-Developer Split</h2>
 
+        <div class="callout">
+          <strong>Acceptance rule:</strong> each developer slice must be locally verifiable without waiting for the whole MVP to be finished. The checks below are the minimum handoff checks for each developer.
+        </div>
+
         <div class="subgrid">
           <div class="subcard">
             <h3>Dev 1: Bob + MCP Orchestration</h3>
@@ -1069,7 +1087,16 @@ open-report-viewer.ts
               <li>Implement local viewer-open flow.</li>
               <li>Configure Bob so the `modernization-architect` mode can use MCP tools.</li>
             </ul>
-            <p><strong>Done when:</strong> Bob sees the toolbox, validation works, save works, viewer-open works.</p>
+            <p><strong>Done when:</strong></p>
+            <ul>
+              <li>`.bob/mcp.json` contains one `modernization-navigator` server entry and all 8 fixed tool names in `alwaysAllow`.</li>
+              <li>`packages/mcp-server/src/index.ts` registers exactly the 8 tool names from Section 6.</li>
+              <li>Calling `discover_repo_scope` with `{ repoRoot }` returns schema-valid JSON with `repoRoot`, `detectedPackageManager`, `workspaceType`, and `candidateProjects`.</li>
+              <li>Calling `save_modernization_report` with a valid `Report` writes `reports/latest/report.json`, one `reports/history/&lt;reportId&gt;.json`, and `reports/index.json`.</li>
+              <li>`save_modernization_report` returns `reportId`, `reportPath`, and `historyPath` that match the files actually written.</li>
+              <li>Calling `open_report_viewer` with `{ reportPath, autoOpenViewer: false }` returns `viewerUrl` in the shape `http://127.0.0.1:&lt;port&gt;/` and `serverStatus` equal to `started` or `reused`.</li>
+              <li>In Bob, the `Modernization Architect` mode is visible and points to `.bob/rules-modernization-architect/`.</li>
+            </ul>
           </div>
 
           <div class="subcard">
@@ -1095,7 +1122,15 @@ open-report-viewer.ts
               <li>Implement source-level compatibility checks with `ts-morph`.</li>
               <li>Implement direct-vs-staged path comparison with risk and effort scores.</li>
             </ul>
-            <p><strong>Done when:</strong> evidence tools return deterministic outputs and offline mode works.</p>
+            <p><strong>Done when:</strong></p>
+            <ul>
+              <li>Fixture tests prove `detectPackageManager()` precedence works in this order: lockfile, workspace config, `packageManager`, then `npm` fallback.</li>
+              <li>A fixture repo with all supported runtime declarations returns evidence entries for each present kind: `engines`, `nvmrc`, `node-version`, `docker`, `github-actions`, `deployment`, and `script`.</li>
+              <li>Calling `inspect_dependency_blockers`, `inspect_ops_runtime`, and `inspect_source_compatibility` on the same fixture twice returns the same issue IDs and the same issue ordering.</li>
+              <li>Calling `compare_target_paths` returns at least one path, numeric `riskScore`, numeric `effortScore`, blocker arrays, and a non-empty `recommendedPathCandidate`.</li>
+              <li>Provider-layer network failures do not crash the analysis process.</li>
+              <li>Offline mode skips provider calls and still returns schema-valid outputs with deterministic summaries.</li>
+            </ul>
           </div>
 
           <div class="subcard">
@@ -1119,7 +1154,16 @@ open-report-viewer.ts
               <li>Implement latest-report loading and history switching.</li>
               <li>Support sample-data mode for the hosted demo viewer.</li>
             </ul>
-            <p><strong>Done when:</strong> latest report loads, history switching works, and the viewer clearly shows Bob recommendation plus MCP evidence.</p>
+            <p><strong>Done when:</strong></p>
+            <ul>
+              <li>The viewer server binds to `127.0.0.1:4173` by default, or to `process.env.VIEWER_PORT` when that env var is set.</li>
+              <li>Opening `http://127.0.0.1:4173/` returns the viewer page, not a directory listing or raw JSON.</li>
+              <li>The browser receives HTTP 200 responses for `/`, `/app.js`, `/styles.css`, `/reports/index.json`, and `/reports/latest/report.json`.</li>
+              <li>The page visibly renders all required sections: Bob recommendation, evaluated target paths, issues, evidence, execution plan, validation checklist, tool trace, and history selector.</li>
+              <li>On first load, the page reads `reports/index.json`, loads the latest report automatically, and shows the selected report metadata on screen.</li>
+              <li>Changing the history selector loads a different report JSON file and updates the visible recommendation or report metadata without a page reload.</li>
+              <li>Demo sample mode can load committed sample data and render the same sections without running live analysis.</li>
+            </ul>
           </div>
 
           <div class="subcard">
@@ -1143,7 +1187,15 @@ open-report-viewer.ts
               <li>Add fixture repos and sample report artifacts.</li>
               <li>Add schema tests and report snapshot tests.</li>
             </ul>
-            <p><strong>Done when:</strong> schemas compile, snapshots are stable, and all other devs can import contracts instead of redefining them.</p>
+            <p><strong>Done when:</strong></p>
+            <ul>
+              <li>`reportSchema`, `tool-results`, and `reportManifestSchema` accept valid fixtures and reject invalid fixtures missing required fields.</li>
+              <li>`TOOL_NAMES` contains exactly the 8 fixed MCP tool names from Section 6.</li>
+              <li>Report path constants equal the required paths exactly: `reports/latest/report.json`, `reports/history`, and `reports/index.json`.</li>
+              <li>Fixture coverage exists for npm, pnpm, yarn, Docker mismatch, CI mismatch, and source compatibility mismatch cases.</li>
+              <li>Snapshot tests verify the normalized saved report JSON shape and the report manifest shape.</li>
+              <li>Other packages import shared contracts from `@modernization-navigator/shared` instead of redefining local copies.</li>
+            </ul>
           </div>
         </div>
       </section>

@@ -1329,6 +1329,11 @@ Do not save:
 
 Use this exact split for 4 developers.
 
+Rule for work allocation:
+- each developer slice must be locally verifiable without waiting for the full MVP to be finished
+- the checks below are the minimum acceptance checks for handoff
+- shared contracts from `packages/shared` are the only allowed cross-team dependency for MVP parallelization
+
 ### Dev 1: Bob + MCP Orchestration
 
 Own these paths:
@@ -1377,9 +1382,22 @@ Do not build:
 - viewer rendering
 
 Done when:
-- Bob can see all 8 tools
-- tool validation works
-- save and open flows work
+- `.bob/mcp.json` contains one `modernization-navigator` server entry and all 8 fixed tool names in `alwaysAllow`
+- `packages/mcp-server/src/index.ts` registers exactly the 8 tool names from Section 6 and does not rename any of them
+- calling `discover_repo_scope` with `{ repoRoot }` returns schema-valid JSON with:
+  - `repoRoot`
+  - `detectedPackageManager`
+  - `workspaceType`
+  - `candidateProjects`
+- calling `save_modernization_report` with a schema-valid `Report` writes all 3 required files:
+  - `reports/latest/report.json`
+  - `reports/history/<reportId>.json`
+  - `reports/index.json`
+- `save_modernization_report` returns `reportId`, `reportPath`, and `historyPath` matching the files actually written
+- calling `open_report_viewer` with `{ reportPath, autoOpenViewer: false }` returns:
+  - `viewerUrl` in the shape `http://127.0.0.1:<port>/`
+  - `serverStatus` equal to `started` or `reused`
+- in Bob, the `Modernization Architect` mode is visible and points to `.bob/rules-modernization-architect/`
 
 ### Dev 2: Evidence Engine
 
@@ -1433,8 +1451,28 @@ Do not build:
 - viewer UI
 
 Done when:
-- all evidence tools can return deterministic outputs
-- offline mode is supported
+- fixture tests prove `detectPackageManager()` precedence works in this order:
+  - lockfile
+  - workspace config
+  - `packageManager` field
+  - `npm` fallback
+- a fixture repo containing all supported runtime declarations returns runtime evidence entries for each present kind:
+  - `engines`
+  - `nvmrc`
+  - `node-version`
+  - `docker`
+  - `github-actions`
+  - `deployment`
+  - `script`
+- calling `inspect_dependency_blockers`, `inspect_ops_runtime`, and `inspect_source_compatibility` on the same fixture twice returns the same issue IDs and the same issue ordering
+- calling `compare_target_paths` returns:
+  - at least one `comparedPaths` entry
+  - numeric `riskScore`
+  - numeric `effortScore`
+  - blocker arrays
+  - a non-empty `recommendedPathCandidate`
+- provider-layer network failures do not crash the analysis process
+- offline mode skips provider calls and still returns schema-valid outputs with deterministic summaries
 
 ### Dev 3: Viewer
 
@@ -1487,9 +1525,26 @@ Do not build:
 - Bob custom mode
 
 Done when:
-- latest report loads
-- history switching works
-- viewer shows Bob recommendation and MCP evidence clearly
+- starting the viewer server binds to `127.0.0.1:4173` by default, or to `process.env.VIEWER_PORT` when that env var is set
+- opening `http://127.0.0.1:4173/` returns the viewer page, not a directory listing or raw JSON
+- the browser receives HTTP 200 responses for:
+  - `/`
+  - `/app.js`
+  - `/styles.css`
+  - `/reports/index.json`
+  - `/reports/latest/report.json`
+- the page visibly renders all required sections:
+  - Bob recommendation
+  - evaluated target paths
+  - issues
+  - evidence
+  - execution plan
+  - validation checklist
+  - tool trace
+  - history selector
+- on first load, the page reads `reports/index.json`, loads the latest report automatically, and shows the selected report metadata on screen
+- changing the history selector loads a different report JSON file and updates the visible recommendation or report metadata without a page reload
+- demo sample mode can load committed sample data and render the same sections without running live analysis
 
 ### Dev 4: Shared Contracts + Tests
 
@@ -1534,9 +1589,21 @@ Do not build:
 - viewer styling
 
 Done when:
-- schemas compile
-- snapshots are stable
-- other devs can import contracts without redefining them
+- `reportSchema`, `tool-results`, and `reportManifestSchema` accept valid fixtures and reject invalid fixtures missing required fields
+- `TOOL_NAMES` contains exactly the 8 fixed MCP tool names from Section 6
+- report path constants equal the required paths exactly:
+  - `reports/latest/report.json`
+  - `reports/history`
+  - `reports/index.json`
+- fixture coverage exists for:
+  - npm repo
+  - pnpm repo
+  - yarn repo
+  - Docker mismatch
+  - CI mismatch
+  - source compatibility mismatch
+- snapshot tests verify the normalized saved report JSON shape and the report manifest shape
+- other packages import shared contracts from `@modernization-navigator/shared` rather than redefining local copies
 
 ## 17. Implementation Sequence
 
