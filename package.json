@@ -15,7 +15,7 @@
     "mcp:build": "tsc -b packages/shared packages/knowledge-base packages/providers packages/analysis-engine packages/viewer-server packages/mcp-server"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "~20.10.0",
     "eslint": "latest",
     "prettier": "latest",
     "tsx": "latest",

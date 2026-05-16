@@ -6,6 +6,6 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@modernization-navigator/shared": "workspace:*"
+    "@modernization-navigator/shared": "*"
   }
 }

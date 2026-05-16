@@ -6,9 +6,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@modernization-navigator/shared": "workspace:*",
-    "@modernization-navigator/providers": "workspace:*",
-    "@modernization-navigator/knowledge-base": "workspace:*",
+    "@modernization-navigator/shared": "*",
+    "@modernization-navigator/providers": "*",
+    "@modernization-navigator/knowledge-base": "*",
     "ts-morph": "latest",
     "yaml": "latest"
   }

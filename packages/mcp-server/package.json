@@ -6,8 +6,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@modernization-navigator/shared": "workspace:*",
-    "@modernization-navigator/analysis-engine": "workspace:*",
-    "@modernization-navigator/viewer-server": "workspace:*"
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@modernization-navigator/shared": "*",
+    "@modernization-navigator/analysis-engine": "*",
+    "@modernization-navigator/viewer-server": "*",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.5"
+  },
+  "bin": {
+    "modernization-navigator-mcp": "dist/index.js"
   }
 }
