@@ -1,0 +1,183 @@
+{
+  "reportId": "guide-20260516T104206Z",
+  "createdAt": "2026-05-16T10:42:06.405Z",
+  "repoRoot": "/Users/elbekmirzamakhmudov/StudioProjects/ModernizationNavigator",
+  "subdirectory": "services/api",
+  "requestedTargetNodeVersion": "20",
+  "evaluatedTargetNodeVersions": [
+    "18",
+    "20"
+  ],
+  "detectedPackageManager": "pnpm",
+  "offlineMode": false,
+  "externalDataStatus": {
+    "npmRegistry": "used",
+    "osv": "used",
+    "notes": [
+      "Fixture report for contract validation."
+    ]
+  },
+  "toolTrace": [
+    {
+      "toolName": "discover_repo_scope",
+      "purpose": "Detect repo boundaries",
+      "status": "success",
+      "startedAt": "2026-05-16T11:00:00.000Z",
+      "finishedAt": "2026-05-16T11:00:01.000Z",
+      "resultSummary": "Detected a pnpm monorepo."
+    },
+    {
+      "toolName": "collect_runtime_evidence",
+      "purpose": "Collect runtime declarations",
+      "status": "success",
+      "startedAt": "2026-05-16T11:00:01.000Z",
+      "finishedAt": "2026-05-16T11:00:02.000Z",
+      "resultSummary": "Found Node version declarations in package.json and CI."
+    },
+    {
+      "toolName": "inspect_dependency_blockers",
+      "purpose": "Inspect dependency compatibility",
+      "status": "success",
+      "startedAt": "2026-05-16T11:00:02.000Z",
+      "finishedAt": "2026-05-16T11:00:03.000Z",
+      "resultSummary": "Flagged one dependency review item."
+    }
+  ],
+  "runtimeEvidence": [
+    {
+      "source": "package.json",
+      "filePath": "services/api/package.json",
+      "value": ">=18 <21",
+      "kind": "engines"
+    },
+    {
+      "source": "github-actions",
+      "filePath": ".github/workflows/ci.yml",
+      "value": "20",
+      "kind": "github-actions"
+    }
+  ],
+  "issues": [
+    {
+      "id": "dependency-native-addon-review",
+      "category": "dependency",
+      "title": "Native addon package needs Node 20 validation",
+      "issue": "A native addon may require a newer release before the final runtime cutover.",
+      "incompatibilityReason": "Native addon packages often need rebuilt binaries for major Node upgrades.",
+      "defaultTechnicalRecommendation": "Validate the package on Node 20 before final cutover.",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Stage through Node 18 first",
+          "summary": "Reduce simultaneous runtime and dependency churn.",
+          "targetVersionRange": "18.x",
+          "rationale": "A staged approach lowers release risk while preserving momentum.",
+          "tradeoffs": [
+            "Longer migration timeline",
+            "Two validation cycles"
+          ],
+          "commands": [
+            "pnpm up native-addon-package",
+            "pnpm test"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "services/api/package.json",
+        "services/api/pnpm-lock.yaml"
+      ],
+      "evidence": [
+        {
+          "kind": "package",
+          "filePath": "services/api/package.json",
+          "summary": "Dependency appears in runtime dependencies.",
+          "packageName": "native-addon-package",
+          "snippet": "\"native-addon-package\": \"^3.2.0\""
+        }
+      ],
+      "recommendedCommands": [
+        "pnpm up native-addon-package",
+        "pnpm test",
+        "pnpm build"
+      ],
+      "validationSteps": [
+        {
+          "title": "Rebuild native addon on Node 20",
+          "commands": [
+            "pnpm install",
+            "pnpm test"
+          ],
+          "expectedResult": "Install and test commands complete without binary rebuild failures."
+        }
+      ]
+    }
+  ],
+  "bobDecision": {
+    "summary": "Take a staged path by aligning runtime declarations first and validating the native addon before the final Node 20 cutover.",
+    "selectedTargetPath": "Node 18 hardening -> Node 20 final cutover",
+    "rationale": "The runtime references span package.json and CI, so a staged rollout reduces change coupling.",
+    "prioritizedRisks": [
+      "Native addon compatibility on Node 20",
+      "CI drift if workflows stay on an older runtime"
+    ],
+    "chosenSolutions": [
+      "Stage runtime declarations through Node 18",
+      "Validate native addon compatibility before the final cutover"
+    ],
+    "tradeoffs": [
+      "Slightly longer schedule",
+      "Cleaner rollback points"
+    ]
+  },
+  "bobExecutionPlan": [
+    {
+      "phase": "Phase 1",
+      "order": 1,
+      "title": "Align runtime declarations",
+      "actions": [
+        "Update package.json engines to Node 18.",
+        "Update GitHub Actions setup-node values.",
+        "Refresh Docker base images if needed."
+      ],
+      "dependsOn": [],
+      "validation": [
+        "CI passes on Node 18",
+        "Local install and build remain green"
+      ]
+    },
+    {
+      "phase": "Phase 2",
+      "order": 2,
+      "title": "Complete Node 20 cutover",
+      "actions": [
+        "Upgrade or replace the flagged native addon dependency.",
+        "Move runtime declarations to Node 20.",
+        "Run full release validation."
+      ],
+      "dependsOn": [
+        "Align runtime declarations"
+      ],
+      "validation": [
+        "Dependency install succeeds on Node 20",
+        "Test and build pipeline stays green"
+      ]
+    }
+  ],
+  "validationChecklist": [
+    {
+      "title": "Dependency install",
+      "commands": [
+        "pnpm install"
+      ],
+      "expectedResult": "Workspace install succeeds on the selected Node runtime."
+    },
+    {
+      "title": "CI parity check",
+      "commands": [
+        "pnpm test",
+        "pnpm build"
+      ],
+      "expectedResult": "Local results match the updated CI configuration."
+    }
+  ]
+}

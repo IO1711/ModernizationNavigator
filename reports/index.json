@@ -2,6 +2,33 @@
   "latestReportPath": "reports/latest/report.json",
   "history": [
     {
+      "reportId": "modernization-20260516T110511Z",
+      "createdAt": "2026-05-16T11:05:11.735Z",
+      "reportPath": "reports/history/modernization-20260516T110511Z.json",
+      "requestedTargetNodeVersion": "20"
+    },
+    {
+      "reportId": "test-20260516T104718Z",
+      "createdAt": "2026-05-16T10:47:18.997Z",
+      "reportPath": "reports/history/test-20260516T104718Z.json",
+      "requestedTargetNodeVersion": "20",
+      "subdirectory": "services/api"
+    },
+    {
+      "reportId": "guide-20260516T104206Z",
+      "createdAt": "2026-05-16T10:42:06.405Z",
+      "reportPath": "reports/history/guide-20260516T104206Z.json",
+      "requestedTargetNodeVersion": "20",
+      "subdirectory": "services/api"
+    },
+    {
+      "reportId": "sample-20260516T090000Z",
+      "createdAt": "2026-05-16T09:00:00.000Z",
+      "reportPath": "reports/history/sample-20260516T090000Z.json",
+      "requestedTargetNodeVersion": "20",
+      "subdirectory": "services/api"
+    },
+    {
       "reportId": "test-1778920405745",
       "createdAt": "2026-05-16T08:33:25.745Z",
       "reportPath": "reports/history/test-1778920405745.json",
@@ -26,13 +53,6 @@
       "reportId": "test-1778920301667",
       "createdAt": "2026-05-16T08:31:41.667Z",
       "reportPath": "reports/history/test-1778920301667.json",
-      "requestedTargetNodeVersion": "20",
-      "subdirectory": "services/api"
-    },
-    {
-      "reportId": "sample-20260516T090000Z",
-      "createdAt": "2026-05-16T09:00:00.000Z",
-      "reportPath": "reports/history/sample-20260516T090000Z.json",
       "requestedTargetNodeVersion": "20",
       "subdirectory": "services/api"
     }

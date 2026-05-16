@@ -289,6 +289,162 @@ Why:
   the same harness gives me confidence the bug is actually fixed and not
   just hidden by a more lenient assertion.
 
+### 2026-05-16 — Full Phase A-D run against the live repo
+
+What I did:
+- Ran the full test guide from `tool_test_guide.html` end to end, adapted
+  for the actual repo path (`/Users/elbekmirzamakhmudov/StudioProjects/ModernizationNavigator`).
+- Phase A: `npm install` + `npm run build` — clean.
+- Phase B: `npx vitest run` — `Test Files 4 passed (4)`, `Tests 16 passed (16)`.
+- Phase C: direct MCP smoke test — 8 tools registered, `discover_repo_scope`
+  returned `npm` + `monorepo`, `save_modernization_report` wrote
+  `guide-20260516T104206Z` to all 3 paths, `open_report_viewer` returned
+  `http://127.0.0.1:4557/` with status `started`.
+- Phase D: `tests-local/run.mjs` — first run crashed with
+  `Cannot read properties of undefined (reading 'createElement')`.
+
+Why:
+- The user asked me to run the full guide and confirm green before they
+  tried Bob themselves. Running everything in order, not just my own
+  scope, gives confidence that the integration between Dev 1's MCP, Dev
+  2's analyzers, Dev 4's schemas, and my viewer actually holds up.
+
+What I learned:
+- The MCP server output reports `detectedPackageManager: npm` for this
+  repo because we have `package-lock.json`, not `pnpm-lock.yaml`. The
+  test guide HTML (Bilolbek's machine) expected `pnpm` — that's
+  machine-specific, not a bug.
+- `candidateProjects` listed `tests-local` because my jsdom sub-package
+  has its own `package.json`. Cosmetic, but worth flagging to Dev 2:
+  their workspace walker treats any directory containing
+  `package.json` as a candidate, even when gitignored.
+
+### 2026-05-16 — Test-runner single-history-entry race fixed
+
+File changed:
+- `tests-local/run.mjs`
+
+What I did:
+- Diagnosed the Phase D crash. Trace pointed at `renderMeta` line 83,
+  `document.createElement('div')`, with `document` undefined. The runner
+  was dispatching `change` on the history `<select>`, which kicked off a
+  `fetchJson` + `renderReport`, then immediately calling
+  `dom.window.close()`. With only one history entry the change fires but
+  the meta text doesn't visibly change, so the runner waited the full
+  3-second timeout and tore down the window while the fetch's `.then`
+  was still queued. When that callback ran against a destroyed document,
+  `document` was undefined → `createElement` blew up.
+- Fixed two things in the runner:
+  1. Detect the single-history-entry case BEFORE dispatching the change
+     event; skip the dispatch and just assert structural invariants. The
+     "switch loads a different report" assertion only makes sense when
+     there are at least two entries to switch between.
+  2. Added a `process.on('unhandledRejection', ...)` guard that filters
+     the specific late-callback signature so a similar future race
+     can't crash the runner before it prints its summary.
+  3. Added a 100ms microtask drain before `dom.window.close()` in the
+     multi-entry path, so in-flight fetches resolve against a still-live
+     document.
+- Re-ran `node tests-local/run.mjs` after the fix: **44 passed, 0 failed**.
+
+Why:
+- The viewer itself was fine in this run — `app.js` renderMeta has used
+  `document.createElement` from day one. The bug was in the *test
+  harness*, not the unit under test. Fixing the harness rather than
+  silencing the symptom keeps the test honest.
+
+### 2026-05-16 — CSS overflow fix (sidebar + cards)
+
+File changed:
+- `apps/viewer/styles.css`
+
+What I did:
+- The user reported sidebar items (Repo Root path, History dropdown
+  selected option) visually overflowing the sidebar's right edge. Live
+  page screenshot confirmed: `/Users/.../StudioProjects/Mod~` extended
+  past the white card boundary into the gradient background.
+- Diagnosed three root causes:
+  1. `<small>` inside `.meta-item` is inline by default; a long
+     unbreakable string (a Unix path with no spaces) has no soft-wrap
+     opportunity and renders past the parent's content box.
+  2. CSS grid tracks default to `min-width: auto`, which is the
+     intrinsic min-content size of the child. A wide card inside the
+     sidebar widens its grid track past the declared `320px`.
+  3. Card body paragraphs across the viewer have the same risk for any
+     long file path / report value.
+- Fixed all three:
+  - `.shell { grid-template-columns: minmax(0, 320px) minmax(0, 1fr); }`
+    pins both tracks to a `0` min so children can't blow them out.
+  - `.sidebar { min-width: 0; }` and `.main { min-width: 0; }` for the
+    same reason on grid children.
+  - `.meta-item small, .card p, .issue-card p, .compact-card p`
+    now `display: block` + `overflow-wrap: anywhere` +
+    `word-break: break-word`.
+  - `.meta-item, .card, .issue-card, .compact-card, .plan-card`
+    get `min-width: 0` and `overflow: hidden` as defensive clipping.
+- Confirmed the new CSS serves via `curl http://127.0.0.1:4173/styles.css`.
+  The user hard-refreshed in their browser and confirmed the layout is
+  clean.
+
+Why:
+- The viewer is the demo surface — anything that visibly breaks at the
+  judge demo (Section 19 acceptance criterion 7) is a real defect, not
+  cosmetic. Repo paths are always long on real machines.
+
+### 2026-05-16 — Phase E end-to-end through IBM Bob
+
+What I did:
+- The user opened IBM Bob, pointed it at the repo, switched to the
+  `Modernization Architect` mode, and sent the standard test prompt:
+  *"Analyze this repository for a Node 20 modernization path. Use the
+  Modernization Architect workflow, save the final report, and open the
+  report viewer."*
+- Bob initially showed a red badge in its MCP panel reading
+  `[modernization-navigator] MCP server ready (stdio).` That is in fact
+  the success log from `packages/mcp-server/src/index.ts:167`, written
+  to stderr (correctly — stdout is reserved for JSON-RPC). Bob labels
+  any stderr output red without distinguishing log levels. Cosmetic,
+  not blocking. Worth flagging to Dev 1 to gate that line behind
+  `LOG_LEVEL=debug`.
+- Despite the red badge, Bob completed the full workflow:
+  - 8 tools registered (`/tools` panel showed all of them).
+  - Tool call order observed: `discover_repo_scope` →
+    `collect_runtime_evidence` → `inspect_dependency_blockers` →
+    `inspect_ops_runtime` → `inspect_source_compatibility` →
+    `compare_target_paths` (implicit in the analysis) →
+    `save_modernization_report` → `open_report_viewer`.
+  - `save_modernization_report` wrote
+    `reports/history/modernization-20260516T110511Z.json`, updated
+    `reports/latest/report.json` and `reports/index.json`.
+  - Bob chose a "staged-upgrade" path (`bobDecision.selectedTargetPath`).
+  - `open_report_viewer` opened the browser at `http://127.0.0.1:4173/`
+    against the running viewer; the viewer rendered the new report.
+- Verified artifacts on disk: manifest has the new entry at the top,
+  history file is 8583 bytes, `toolTrace` shows all five evidence tools
+  returned `success`.
+
+What I learned:
+- The full chain works end to end. Section 19 final acceptance:
+  1. Bob can run the `Modernization Architect` mode in the project ✓
+  2. Bob calls the MCP toolbox locally through STDIO ✓
+  3. MCP tools return structured evidence ✓
+  4. Bob chooses the final migration path and writes the chat report ✓
+  5. Saved artifact contains both evidence and Bob's plan ✓
+  6. Viewer opens locally and renders the saved report correctly ✓
+- One legitimate analyzer false positive surfaced: Dev 2's source
+  compatibility detector flagged `tests-local/run.mjs:11` for using
+  `__dirname` in an ESM context. Looking at the actual code,
+  `tests-local/run.mjs:17` does `const __dirname =
+  path.dirname(fileURLToPath(import.meta.url))` — that is the *correct*
+  ESM workaround. The detector matches the bare string `__dirname`
+  without noticing the local redefinition. Flag to Dev 2.
+
+Decision:
+- Do NOT silence the analyzer false positive from my side. The right
+  fix is in `packages/analysis-engine/src/detectors/source-compatibility.ts`,
+  which is Dev 2's territory. The right team move is to flag it, not
+  to add a workaround in `tests-local/`.
+
 ## Convention for future entries
 
 Each entry uses:

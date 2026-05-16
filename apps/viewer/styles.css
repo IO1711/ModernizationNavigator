@@ -37,7 +37,7 @@ body {
   margin: 0 auto;
   padding: 24px;
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
   gap: 24px;
 }
 
@@ -56,6 +56,7 @@ body {
   top: 24px;
   align-self: start;
   padding: 24px;
+  min-width: 0;
 }
 
 .sidebar h1,
@@ -130,9 +131,28 @@ select {
   margin-bottom: 6px;
 }
 
+.meta-item,
+.card,
+.issue-card,
+.compact-card,
+.plan-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.meta-item small,
+.card p,
+.issue-card p,
+.compact-card p {
+  display: block;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .main {
   display: grid;
   gap: 24px;
+  min-width: 0;
 }
 
 .hero {
