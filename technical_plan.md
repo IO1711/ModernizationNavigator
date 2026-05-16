@@ -1,277 +1,681 @@
-# Modernization Navigator Technical Plan
+# Modernization Navigator Implementation Handoff
 
-## Locked MVP Decisions
+This document is not a brainstorm. It is the assignment-ready implementation plan for the MVP.
 
-- Product type: local IBM Bob modernization copilot for Node.js upgrade planning
-- Product posture: Bob-first experience with MCP-backed repo intelligence
-- Backend stack: Node.js + TypeScript
-- Monorepo: single repo with `npm` workspaces
-- Bob integration: local `STDIO` MCP server only
-- Bob mode: one focused custom mode
-- MCP model: multiple smaller MCP tools, adaptively orchestrated by Bob
-- Bob responsibility:
-  - gather scope
-  - decide what evidence to collect
-  - compare migration paths
-  - choose the recommended path
-  - produce the user-facing report in chat
-- MCP responsibility:
-  - inspect repo state
-  - gather deterministic evidence
-  - compare technical paths
-  - persist report artifacts
-  - open the local viewer
-- Final outputs:
-  - Bob chat report
-  - local viewer report
-- Viewer: plain HTML/CSS/JS
-- Viewer delivery:
-  - local offline viewer for real usage
-  - hosted static demo viewer for judges
-- Viewer data model: generic viewer page + generated JSON reports containing MCP evidence and Bob's chosen plan
-- Viewer server: built-in local static server in the Node monorepo
-- Viewer auto-open: enabled by default, user can turn it off
-- Repo input: current local repo opened in Bob
-- Repo scope: current repo + optional subdirectory target
-- Monorepo target handling: single selected subproject analysis only
-- Analysis scope: any Node.js repo
-- Package manager support: `npm`, `pnpm`, `yarn`
-- Recommendation model: Bob makes the final recommendation using MCP evidence, no patch generation in MVP
-- Resolution model:
-  - issue
-  - incompatibility reason
-  - evidence
-  - default technical recommendation
-  - multiple ranked alternative solutions
-  - affected files
-  - validation steps
-- Solution ranking: rule-based using repo state + external metadata
-- Dependency alternatives: same package ecosystem only, no package replacement suggestions
-- External sources: npm registry metadata + OSV
-- GitHub advisories: removed from MVP
-- Offline behavior: explicit offline mode
-- Compatibility knowledge: small internal JSON knowledge base
-- Source analysis: heuristic scanning + AST analysis
-- AST tooling: `ts-morph`
-- Runtime validation / report schemas: `zod`
-- Test framework: `vitest`
-- UI theme: light theme only
-- Report formats:
-  - `JSON` primary output
-  - no Markdown export in MVP
-- Local report storage:
-  - `reports/latest/report.json`
-  - `reports/history/<timestamp>.json`
-  - `reports/index.json`
-- Hosted viewer hosting: `Vercel or Netlify`, implementation owner chooses
-- Planning scope: MVP + post-hackathon roadmap
+Use this document when you tell a developer:
+- which folders to create
+- which files to own
+- which functions to implement
+- what input and output each part must use
+- what must not be changed without approval
 
-## Goals
+If a developer follows this document, they should be able to start implementation without asking what goes where.
 
-- Let a user open a local Node.js repo in Bob and ask for upgrade guidance against a target Node version.
-- Let Bob ask smart scoping questions before analysis when needed.
-- Let Bob choose which MCP tools to call and in what order based on the repo and the user request.
-- Detect runtime, dependency, config, CI/CD, container, deployment, script, and source-level incompatibilities.
-- Provide deterministic evidence so Bob does not need to improvise repo facts.
-- Let Bob compare migration paths such as direct upgrade versus staged upgrade.
-- Produce both:
-  - a conversational Bob report
-  - a local viewer report with saved evidence and Bob's chosen plan
-- Demonstrate clear, visible, meaningful use of IBM Bob as the modernization architect.
+## 1. Product Summary
 
-## Non-Goals for MVP
+Modernization Navigator is a Bob-first Node.js modernization copilot.
 
-- No automatic code patch generation
-- No remote HTTP MCP server
-- No database
-- No user accounts
-- No hosted analysis backend
-- No GitHub advisory integration
-- No package replacement suggestions across ecosystems
-- No Java/Spring analysis
-- No multi-subproject combined report
-- No autonomous repo modifications
+The user opens a repo in IBM Bob, selects the `Modernization Architect` custom mode, and asks for upgrade guidance.
 
-## Repository Layout
+Bob does the user-facing work:
+- asks scope questions
+- decides which MCP tools to call
+- compares upgrade paths
+- chooses the final recommendation
+- writes the final chat report
+
+MCP does the deterministic work:
+- inspects repo files
+- gathers compatibility evidence
+- compares technical upgrade paths
+- saves the report artifact to disk
+- opens the local report viewer
+
+The MVP has two first-class outputs:
+- Bob chat report
+- local viewer report
+
+## 2. Non-Negotiable Rules
+
+Do not change these without explicit approval:
+
+1. Bob is the decision maker.
+2. MCP is the evidence and artifact layer.
+3. Use local `STDIO` MCP only.
+4. Use multiple small MCP tools, not one giant tool.
+5. Use project-level Bob config files:
+   - `.bob/mcp.json`
+   - `.bob/custom_modes.yaml`
+6. Save reports to:
+   - `reports/latest/report.json`
+   - `reports/history/<timestamp>.json`
+   - `reports/index.json`
+7. Do not write changes into the analyzed repo.
+8. Viewer is plain HTML/CSS/JS.
+9. No hosted analysis backend in MVP.
+
+## 3. First Setup Tasks
+
+Before assigning work to multiple developers, do these exact setup tasks first.
+
+### 3.1 Create the repository scaffold
+
+Create this exact folder structure:
 
 ```text
-modernization-navigator/
-  .bob/
-    mcp.json
-    custom-modes/
-      modernization-architect.md
-  apps/
-    viewer/
-      index.html
-      styles.css
-      app.js
-      viewer-config.demo.js
-      sample/
-        index.json
-        reports/
-          sample-report.json
-  packages/
-    shared/
-      src/
-        schemas/
-        types/
-        constants/
-        utils/
-    knowledge-base/
-      src/
-      data/
-        node-runtime-rules.json
-        package-compatibility-rules.json
-        ci-runtime-rules.json
-        deployment-runtime-rules.json
-    providers/
-      src/
-        npm-registry-provider.ts
-        osv-provider.ts
-        provider-types.ts
-    analysis-engine/
-      src/
-        detectors/
-        parsers/
-        analyzers/
-        rankers/
-        report/
-    viewer-server/
-      src/
-        server.ts
-        browser-open.ts
-        config.ts
-    mcp-server/
-      src/
+.bob/
+  mcp.json
+  custom_modes.yaml
+  rules-modernization-architect/
+    01-role.md
+    02-workflow.md
+
+apps/
+  viewer/
+    package.json
+    index.html
+    styles.css
+    app.js
+    viewer-config.demo.js
+    sample/
+      index.json
+      reports/
+        sample-report.json
+
+packages/
+  shared/
+    package.json
+    tsconfig.json
+    src/
+      index.ts
+      schemas/
+        report.ts
+        tool-results.ts
+        manifest.ts
+      types/
+        report.ts
+        tools.ts
+      constants/
+        tool-names.ts
+        report-paths.ts
+      utils/
         index.ts
-        report-writer.ts
-        viewer-runtime.ts
-        tools/
-          discover-repo-scope.ts
-          collect-runtime-evidence.ts
-          inspect-dependency-blockers.ts
-          inspect-ops-runtime.ts
-          inspect-source-compatibility.ts
-          compare-target-paths.ts
-          save-modernization-report.ts
-          open-report-viewer.ts
-  reports/
-    latest/
-      report.json
-    history/
-    index.json
-  scripts/
-    sync-demo-sample.ts
-  package.json
-  tsconfig.base.json
-  tsconfig.json
-  eslint.config.js
-  .prettierrc
-  README.md
+
+  mcp-server/
+    package.json
+    tsconfig.json
+    src/
+      index.ts
+      report-writer.ts
+      viewer-runtime.ts
+      tools/
+        discover-repo-scope.ts
+        collect-runtime-evidence.ts
+        inspect-dependency-blockers.ts
+        inspect-ops-runtime.ts
+        inspect-source-compatibility.ts
+        compare-target-paths.ts
+        save-modernization-report.ts
+        open-report-viewer.ts
+
+  analysis-engine/
+    package.json
+    tsconfig.json
+    src/
+      index.ts
+      detectors/
+        package-manager.ts
+        runtime-evidence.ts
+        dependency-blockers.ts
+        ops-runtime.ts
+        source-compatibility.ts
+      analyzers/
+      rankers/
+        target-paths.ts
+      report/
+        merge-issues.ts
+
+  providers/
+    package.json
+    tsconfig.json
+    src/
+      index.ts
+      npm-registry-provider.ts
+      osv-provider.ts
+      provider-types.ts
+
+  knowledge-base/
+    package.json
+    tsconfig.json
+    src/
+      index.ts
+    data/
+      node-runtime-rules.json
+      package-compatibility-rules.json
+      ci-runtime-rules.json
+      deployment-runtime-rules.json
+
+  viewer-server/
+    package.json
+    tsconfig.json
+    src/
+      index.ts
+      server.ts
+      browser-open.ts
+      config.ts
+
+reports/
+  latest/
+  history/
+  index.json
+
+scripts/
+  sync-demo-sample.ts
+
+package.json
+tsconfig.base.json
+tsconfig.json
+eslint.config.js
+.prettierrc
+README.md
 ```
 
-## Required Tooling
+### 3.2 Add root workspace setup
 
-- Package manager: `npm`
-- Workspace model: `npm` workspaces
-- TypeScript build: `tsc`
-- TypeScript dev runtime: `tsx`
-- Linting: `eslint`
-- Formatting: `prettier`
-- Validation: `zod`
-- Source AST inspection: `ts-morph`
-- YAML parsing: `yaml`
-- Tests: `vitest`
-- HTTP requests: native `fetch`
-- Local static viewer server: Node built-in `http` module
+At repo root:
 
-## Required NPM Scripts
+1. Create this exact root `package.json`:
 
-- `npm run build`
-- `npm run typecheck`
-- `npm run lint`
-- `npm run test`
-- `npm run test:watch`
-- `npm run viewer:serve`
-- `npm run viewer:demo-sync`
-- `npm run mcp:dev`
-- `npm run mcp:build`
+```json
+{
+  "name": "modernization-navigator",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "build": "tsc -b packages/shared packages/knowledge-base packages/providers packages/analysis-engine packages/viewer-server packages/mcp-server",
+    "typecheck": "tsc -b --pretty",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "viewer:serve": "node packages/viewer-server/dist/server.js",
+    "viewer:demo-sync": "tsx scripts/sync-demo-sample.ts",
+    "mcp:dev": "tsx packages/mcp-server/src/index.ts",
+    "mcp:build": "tsc -b packages/shared packages/knowledge-base packages/providers packages/analysis-engine packages/viewer-server packages/mcp-server"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "eslint": "latest",
+    "prettier": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
+```
 
-## End-to-End Runtime Flow
+2. Create this exact `tsconfig.base.json`:
 
-1. User opens a local Node.js repo in Bob.
-2. User selects `Modernization Architect`.
-3. User asks for analysis with a target Node version and optional subdirectory.
-4. Bob gathers missing scope:
-   - target Node version if unclear
-   - optional subdirectory
-   - upgrade preference such as safest path or fastest path when useful
-5. Bob inspects the repo context and decides which MCP tools to call first.
-6. Bob calls evidence tools such as:
-   - `discover_repo_scope`
-   - `collect_runtime_evidence`
-   - `inspect_dependency_blockers`
-7. Based on returned evidence, Bob decides whether to call more tools such as:
-   - `inspect_ops_runtime`
-   - `inspect_source_compatibility`
-   - `compare_target_paths`
-8. MCP tools return structured evidence only:
-   - repo facts
-   - issue candidates
-   - ranked technical options
-   - file-level references
-   - comparison data
-9. Bob synthesizes the evidence into:
-   - current-state summary
-   - top blockers
-   - recommended migration path
-   - ordered implementation plan
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2022"],
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+```
+
+3. Create this exact root `tsconfig.json`:
+
+```json
+{
+  "files": [],
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/knowledge-base" },
+    { "path": "packages/providers" },
+    { "path": "packages/analysis-engine" },
+    { "path": "packages/viewer-server" },
+    { "path": "packages/mcp-server" }
+  ]
+}
+```
+
+4. Add `eslint.config.js` and `.prettierrc`.
+
+### 3.3 Create empty file skeletons
+
+Create every file listed in the folder structure, even if the first version only contains:
+- an exported constant
+- an empty function
+- a TODO comment
+
+Reason:
+- each dev needs a known file location
+- imports can be wired early
+- ownership is clearer
+
+### 3.4 Create workspace package manifests
+
+Create these package names exactly.
+
+- `apps/viewer/package.json`
+  - `"name": "@modernization-navigator/viewer-app"`
+  - `"private": true`
+
+- `packages/shared/package.json`
+  - `"name": "@modernization-navigator/shared"`
+  - `"private": true`
+  - `"type": "commonjs"`
+  - `"main": "dist/index.js"`
+  - `"types": "dist/index.d.ts"`
+  - `"dependencies": { "zod": "latest" }`
+
+- `packages/knowledge-base/package.json`
+  - `"name": "@modernization-navigator/knowledge-base"`
+  - `"private": true`
+  - `"type": "commonjs"`
+  - `"main": "dist/index.js"`
+  - `"types": "dist/index.d.ts"`
+  - `"files": ["dist", "data"]`
+
+- `packages/providers/package.json`
+  - `"name": "@modernization-navigator/providers"`
+  - `"private": true`
+  - `"type": "commonjs"`
+  - `"main": "dist/index.js"`
+  - `"types": "dist/index.d.ts"`
+  - `"dependencies": { "@modernization-navigator/shared": "workspace:*" }`
+
+- `packages/analysis-engine/package.json`
+  - `"name": "@modernization-navigator/analysis-engine"`
+  - `"private": true`
+  - `"type": "commonjs"`
+  - `"main": "dist/index.js"`
+  - `"types": "dist/index.d.ts"`
+  - `"dependencies"` must include:
+    - `@modernization-navigator/shared`
+    - `@modernization-navigator/providers`
+    - `@modernization-navigator/knowledge-base`
+    - `ts-morph`
+    - `yaml`
+
+- `packages/viewer-server/package.json`
+  - `"name": "@modernization-navigator/viewer-server"`
+  - `"private": true`
+  - `"type": "commonjs"`
+  - `"main": "dist/index.js"`
+  - `"types": "dist/index.d.ts"`
+  - `"dependencies": { "@modernization-navigator/shared": "workspace:*" }`
+
+- `packages/mcp-server/package.json`
+  - `"name": "@modernization-navigator/mcp-server"`
+  - `"private": true`
+  - `"type": "commonjs"`
+  - `"main": "dist/index.js"`
+  - `"types": "dist/index.d.ts"`
+  - `"dependencies"` must include:
+    - `@modernization-navigator/shared`
+    - `@modernization-navigator/analysis-engine`
+    - `@modernization-navigator/viewer-server`
+
+### 3.5 Create per-package `tsconfig.json` files
+
+For every TypeScript package in `packages/*`, create a package-local `tsconfig.json` using this template:
+
+```json
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts", "src/**/*.json"]
+}
+```
+
+Then add references exactly as follows:
+
+- `packages/shared/tsconfig.json`
+  - no references
+
+- `packages/knowledge-base/tsconfig.json`
+  - no references
+
+- `packages/providers/tsconfig.json`
+  - references:
+    - `../shared`
+
+- `packages/analysis-engine/tsconfig.json`
+  - references:
+    - `../shared`
+    - `../providers`
+    - `../knowledge-base`
+
+- `packages/viewer-server/tsconfig.json`
+  - references:
+    - `../shared`
+
+- `packages/mcp-server/tsconfig.json`
+  - references:
+    - `../shared`
+    - `../analysis-engine`
+    - `../viewer-server`
+
+### 3.6 CommonJS runtime choice
+
+All server-side workspaces use CommonJS in the MVP:
+- `packages/shared`
+- `packages/knowledge-base`
+- `packages/providers`
+- `packages/analysis-engine`
+- `packages/viewer-server`
+- `packages/mcp-server`
+
+Why:
+- Bob launches the MCP server with `node packages/mcp-server/dist/index.js`
+- CommonJS is the lowest-risk format for this local STDIO server MVP
+- do not switch to ESM / `NodeNext` during the MVP
+
+## 4. Bob Project Configuration
+
+This project must be runnable from Bob using project-local configuration.
+
+### 4.1 `.bob/mcp.json`
+
+Create `.bob/mcp.json` with this starting content:
+
+```json
+{
+  "mcpServers": {
+    "modernization-navigator": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/index.js"],
+      "alwaysAllow": [
+        "discover_repo_scope",
+        "collect_runtime_evidence",
+        "inspect_dependency_blockers",
+        "inspect_ops_runtime",
+        "inspect_source_compatibility",
+        "compare_target_paths",
+        "save_modernization_report",
+        "open_report_viewer"
+      ]
+    }
+  }
+}
+```
+
+Notes:
+- This is project-level config for Bob.
+- If Bob does not resolve the relative path cleanly on a developer machine, add `cwd` pointing to the repo root for local setup.
+- Do not add secrets here.
+
+### 4.2 `.bob/custom_modes.yaml`
+
+Create `.bob/custom_modes.yaml` with this starting content:
+
+```yaml
+customModes:
+  - slug: modernization-architect
+    name: Modernization Architect
+    roleDefinition: You are a Node.js modernization architect. You use MCP tools to gather evidence, compare upgrade paths, and recommend the best migration strategy for this repository.
+    whenToUse: Use for Node.js runtime upgrade planning, dependency blocker analysis, CI/runtime compatibility checks, and phased modernization planning.
+    customInstructions: Follow the rules in .bob/rules-modernization-architect/.
+    groups:
+      - read
+      - edit
+      - command
+      - mcp
+```
+
+### 4.3 `.bob/rules-modernization-architect/01-role.md`
+
+Create this exact file content:
+
+```md
+# Modernization Architect Role
+
+You are the modernization architect for this repository.
+
+Your job is to:
+- ask for missing scope when it affects the recommendation
+- choose which MCP tools to call
+- compare direct and staged upgrade paths when needed
+- choose the final migration recommendation
+- write the final user-facing report in chat
+
+Rules:
+- Do not ask MCP to write the final recommendation for you.
+- Use MCP only to gather evidence, compare technical paths, save the report, and open the viewer.
+- If the target Node version is missing, ask for it before analysis.
+- If the repo is a monorepo and no subdirectory is specified, ask whether to analyze the whole repo or one subproject.
+- If multiple upgrade paths seem plausible, call `compare_target_paths` before making a final recommendation.
+- Cite MCP evidence in your final recommendation.
+- Do not invent package replacements outside the current package ecosystem.
+- Do not promise code patches in the MVP.
+```
+
+### 4.4 `.bob/rules-modernization-architect/02-workflow.md`
+
+Create this exact file content:
+
+```md
+# Modernization Architect Workflow
+
+Follow this workflow in order:
+
+1. Gather missing scope.
+   - Ask for `targetNodeVersion` if missing.
+   - Ask for `subdirectory` only if the repo is a monorepo and the request is ambiguous.
+   - Ask whether the user wants the safest path or fastest path only if it changes the recommendation.
+
+2. Call evidence tools.
+   - Start with `discover_repo_scope`.
+   - Then call `collect_runtime_evidence`.
+   - Then call `inspect_dependency_blockers`.
+
+3. Decide whether more evidence is needed.
+   - Call `inspect_ops_runtime` if CI, Docker, or deployment configuration matters.
+   - Call `inspect_source_compatibility` if source-level compatibility risk is likely.
+   - Call `compare_target_paths` if both direct and staged upgrade paths are plausible.
+
+4. Choose the migration path.
+   - Recommend the best path for this repo and this user request.
+   - Use MCP evidence, not guesses.
+
+5. Save the final report.
+   - Call `save_modernization_report` with the normalized report object.
+
+6. Open the report viewer.
+   - Call `open_report_viewer` with the saved report path.
+
+7. Write the final chat report using this order:
+   - current state summary
+   - key blockers
+   - recommended path
+   - implementation order
    - validation checklist
-10. Bob calls `save_modernization_report` to persist:
-   - MCP evidence
-   - Bob's selected strategy
-   - Bob's execution plan
-   - validation checklist
-11. Bob calls `open_report_viewer`.
-12. Viewer runtime ensures the local server is running and opens the browser by default.
-13. Bob presents the final chat report.
-14. User can inspect the viewer and ask Bob follow-up questions, and Bob can call more MCP tools as needed.
+```
 
-## Bob and MCP Responsibility Model
+## 5. MCP Transport Protocol
 
-### Bob does
+The MCP server must use:
+- local `STDIO` transport
+- JSON-RPC 2.0 messages
+- newline-delimited message exchange over `stdin` and `stdout`
 
-- own the user conversation
-- ask scoping questions
-- decide which tools to call
-- decide call order adaptively
-- compare direct and staged migration paths
-- choose the recommended path for this repo and this user goal
-- present the final narrative report in chat
-- continue helping after the first report
+Behavior:
+1. Bob starts the MCP server as a child process.
+2. Bob sends tool calls over `stdin`.
+3. The server responds over `stdout`.
+4. The server exposes exactly the tools listed in this document.
 
-### MCP does
+Do not implement:
+- remote HTTP transport
+- SSE transport
+- browser-only analysis
 
-- inspect manifests, lockfiles, CI, Docker, deployment config, scripts, and source
-- run AST and static checks
-- fetch external compatibility metadata when allowed
-- return deterministic structured evidence
-- compare target paths in a machine-readable way
-- save report artifacts to disk
-- start or reuse the local viewer server
+## 6. Tool Names and Ownership
 
-### Why MCP makes Bob better
+These tool names are fixed. Do not rename them.
 
-- Bob gets exact repo evidence instead of re-deriving facts every turn
-- Bob can reason over large repos without repeatedly re-reading the same files
-- Bob can rely on deterministic tool outputs for viewer artifacts and history
-- Bob stays focused on judgment, prioritization, and tradeoffs
-- The product visibly shows Bob orchestrating a toolbox rather than acting as a thin wrapper over one giant tool
+1. `discover_repo_scope`
+2. `collect_runtime_evidence`
+3. `inspect_dependency_blockers`
+4. `inspect_ops_runtime`
+5. `inspect_source_compatibility`
+6. `compare_target_paths`
+7. `save_modernization_report`
+8. `open_report_viewer`
 
-## Report Contract
+Rule:
+- each file in `packages/mcp-server/src/tools/` owns exactly one tool
+- one file = one tool
 
-### Required top-level fields
+## 7. Shared Contracts Package
 
+Everything that multiple packages depend on must be defined here first.
+
+Folder:
+- `packages/shared/src/`
+
+### 7.1 `constants/tool-names.ts`
+
+Create:
+- `TOOL_NAMES` array
+- one exported string constant per tool name
+
+Example:
+
+```ts
+export const DISCOVER_REPO_SCOPE = "discover_repo_scope";
+export const COLLECT_RUNTIME_EVIDENCE = "collect_runtime_evidence";
+export const INSPECT_DEPENDENCY_BLOCKERS = "inspect_dependency_blockers";
+export const INSPECT_OPS_RUNTIME = "inspect_ops_runtime";
+export const INSPECT_SOURCE_COMPATIBILITY = "inspect_source_compatibility";
+export const COMPARE_TARGET_PATHS = "compare_target_paths";
+export const SAVE_MODERNIZATION_REPORT = "save_modernization_report";
+export const OPEN_REPORT_VIEWER = "open_report_viewer";
+```
+
+### 7.2 `constants/report-paths.ts`
+
+Create exported constants:
+- `LATEST_REPORT_PATH`
+- `HISTORY_REPORTS_DIR`
+- `REPORT_INDEX_PATH`
+
+### 7.3 `schemas/tool-results.ts`
+
+Create `zod` schemas and inferred TypeScript types for all MCP tool inputs and outputs.
+
+Define these base types:
+
+```ts
+type BaseToolInput = {
+  repoRoot: string;
+  subdirectory?: string;
+  targetNodeVersion?: string;
+  offline?: boolean;
+};
+```
+
+Create these result shapes:
+
+```ts
+type DiscoverRepoScopeResult = {
+  repoRoot: string;
+  subdirectory?: string;
+  detectedPackageManager: "npm" | "pnpm" | "yarn";
+  workspaceType: "single" | "monorepo";
+  candidateProjects: string[];
+};
+
+type CollectRuntimeEvidenceResult = {
+  runtimeEvidence: Array<{
+    source: string;
+    filePath: string;
+    value: string;
+    kind:
+      | "engines"
+      | "nvmrc"
+      | "node-version"
+      | "docker"
+      | "github-actions"
+      | "deployment"
+      | "script";
+  }>;
+};
+
+type InspectDependencyBlockersResult = {
+  issues: Issue[];
+  summary: string;
+};
+
+type InspectOpsRuntimeResult = {
+  issues: Issue[];
+  summary: string;
+};
+
+type InspectSourceCompatibilityResult = {
+  issues: Issue[];
+  summary: string;
+};
+
+type CompareTargetPathsResult = {
+  comparedPaths: Array<{
+    label: string;
+    targetVersion: string;
+    riskScore: number;
+    effortScore: number;
+    blockers: string[];
+  }>;
+  recommendedPathCandidate: string;
+};
+
+type SaveModernizationReportInput = {
+  report: Report;
+};
+
+type SaveModernizationReportResult = {
+  reportId: string;
+  reportPath: string;
+  historyPath: string;
+};
+
+type OpenReportViewerInput = {
+  reportPath: string;
+  autoOpenViewer?: boolean;
+};
+
+type OpenReportViewerResult = {
+  viewerUrl: string;
+  serverStatus: "started" | "reused";
+};
+```
+
+Viewer URL rule:
+- the local viewer must default to port `4173`
+- if `VIEWER_PORT` is set, use that instead
+- returned URL shape must be `http://127.0.0.1:<port>/`
+
+### 7.4 `schemas/report.ts`
+
+Create `reportSchema` and nested schemas.
+
+Top-level report must contain:
 - `reportId`
 - `createdAt`
 - `repoRoot`
@@ -288,8 +692,39 @@ modernization-navigator/
 - `bobExecutionPlan`
 - `validationChecklist`
 
-### Required issue fields
+### 7.5 `schemas/manifest.ts`
 
+Create `reportManifestSchema`.
+
+Use this shape:
+
+```ts
+type ReportManifest = {
+  latestReportPath: string;
+  history: Array<{
+    reportId: string;
+    createdAt: string;
+    reportPath: string;
+    requestedTargetNodeVersion: string;
+    subdirectory?: string;
+  }>;
+};
+```
+
+### 7.6 `types/report.ts` and `types/tools.ts`
+
+Export the inferred TypeScript types from the schemas.
+
+Rule:
+- do not define duplicate types by hand if they already come from `zod`
+
+## 8. Shared Report and Issue Model
+
+Every package must use the same issue model.
+
+### 8.1 `Issue`
+
+Each issue must include:
 - `id`
 - `category`
 - `title`
@@ -302,18 +737,101 @@ modernization-navigator/
 - `recommendedCommands`
 - `validationSteps`
 
-### Required alternative solution fields
+Use this exact TypeScript shape:
 
-- `rank`
-- `title`
-- `summary`
-- `targetVersionRange`
-- `rationale`
-- `tradeoffs`
-- `commands`
+```ts
+type AlternativeSolution = {
+  rank: number;
+  title: string;
+  summary: string;
+  targetVersionRange: string;
+  rationale: string;
+  tradeoffs: string[];
+  commands: string[];
+};
 
-### Required tool trace fields
+type EvidenceItem = {
+  kind:
+    | "package"
+    | "lockfile"
+    | "docker"
+    | "github-actions"
+    | "deployment"
+    | "script"
+    | "source";
+  filePath: string;
+  summary: string;
+  line?: number;
+  column?: number;
+  packageName?: string;
+  configKey?: string;
+  snippet?: string;
+  source?: string;
+};
 
+type ValidationStep = {
+  title: string;
+  commands: string[];
+  expectedResult: string;
+};
+
+type Issue = {
+  id: string;
+  category:
+    | "runtime"
+    | "dependency"
+    | "ci"
+    | "docker"
+    | "deployment"
+    | "script"
+    | "source";
+  title: string;
+  issue: string;
+  incompatibilityReason: string;
+  defaultTechnicalRecommendation: string;
+  alternativeSolutions: AlternativeSolution[];
+  affectedFiles: string[];
+  evidence: EvidenceItem[];
+  recommendedCommands: string[];
+  validationSteps: ValidationStep[];
+};
+```
+
+### 8.1.1 `RuntimeEvidenceEntry`
+
+Use this exact shape:
+
+```ts
+type RuntimeEvidenceEntry = {
+  source: string;
+  filePath: string;
+  value: string;
+  kind:
+    | "engines"
+    | "nvmrc"
+    | "node-version"
+    | "docker"
+    | "github-actions"
+    | "deployment"
+    | "script";
+};
+```
+
+### 8.1.2 `ExternalDataStatus`
+
+Use this exact shape:
+
+```ts
+type ExternalDataStatus = {
+  npmRegistry: "used" | "skipped_offline" | "error";
+  osv: "used" | "skipped_offline" | "error";
+  notes: string[];
+};
+```
+
+### 8.2 `ToolTraceEntry`
+
+Each saved report must store a tool trace entry with:
 - `toolName`
 - `purpose`
 - `status`
@@ -321,8 +839,27 @@ modernization-navigator/
 - `finishedAt`
 - `resultSummary`
 
-### Required Bob decision fields
+Use this exact shape:
 
+```ts
+type ToolTraceEntry = {
+  toolName: string;
+  purpose: string;
+  status: "success" | "error" | "skipped";
+  startedAt: string;
+  finishedAt: string;
+  resultSummary: string;
+};
+```
+
+Rule for MVP:
+- keep `toolTrace` concise
+- do not save separate raw per-tool payload files
+- do not create a separate debug payload directory in the MVP
+
+### 8.3 `BobDecision`
+
+Each saved report must store:
 - `summary`
 - `selectedTargetPath`
 - `rationale`
@@ -330,8 +867,22 @@ modernization-navigator/
 - `chosenSolutions`
 - `tradeoffs`
 
-### Required implementation plan fields
+Use this exact shape:
 
+```ts
+type BobDecision = {
+  summary: string;
+  selectedTargetPath: string;
+  rationale: string;
+  prioritizedRisks: string[];
+  chosenSolutions: string[];
+  tradeoffs: string[];
+};
+```
+
+### 8.4 `BobExecutionPlan`
+
+Each plan item must store:
 - `phase`
 - `order`
 - `title`
@@ -339,636 +890,771 @@ modernization-navigator/
 - `dependsOn`
 - `validation`
 
-## Workstream 1: Architecture
+Use this exact shape:
 
-### Goal
+```ts
+type BobExecutionPlanItem = {
+  phase: string;
+  order: number;
+  title: string;
+  actions: string[];
+  dependsOn: string[];
+  validation: string[];
+};
+```
 
-Define the monorepo, shared contracts, runtime boundaries, and file layout for a Bob-first architecture with MCP as the evidence layer.
+### 8.5 `ValidationChecklist`
 
-### Deliverables
+Use this exact shape:
 
-- `npm` workspaces root configuration
-- TypeScript project references
-- shared schema package
-- shared constants package area
-- base lint/format/typecheck setup
-- repo folder conventions
-- shared schemas for:
-  - evidence tool outputs
-  - persisted report artifacts
-  - Bob decision section
+```ts
+type ValidationChecklistItem = {
+  title: string;
+  commands: string[];
+  expectedResult: string;
+};
+```
 
-### Technical Requirements
+### 8.6 `Report`
 
-- Use `npm` workspaces with `apps/*` and `packages/*`.
-- Keep the viewer, MCP server, analysis engine, and shared contracts in the same repo.
-- Put all persisted report JSON schemas in `packages/shared`.
-- Put all MCP tool output schemas in `packages/shared`.
-- Put all internal compatibility rules in `packages/knowledge-base/data/*.json`.
-- Use one source of truth for report and tool types:
-  - `zod` schemas first
-  - TypeScript types inferred from schemas
-- Separate pure analysis logic from IO-heavy modules.
-- Keep provider interfaces separate from provider implementations.
-- Keep viewer server separate from MCP transport code.
-- Keep report writer separate from evidence generators.
-- Keep demo sample sync logic in `scripts/`.
+Use this exact shape for the normalized saved report:
 
-### Engineering Constraints
+```ts
+type Report = {
+  reportId: string;
+  createdAt: string;
+  repoRoot: string;
+  subdirectory?: string;
+  requestedTargetNodeVersion: string;
+  evaluatedTargetNodeVersions: string[];
+  detectedPackageManager: "npm" | "pnpm" | "yarn";
+  offlineMode: boolean;
+  externalDataStatus: ExternalDataStatus;
+  toolTrace: ToolTraceEntry[];
+  runtimeEvidence: RuntimeEvidenceEntry[];
+  issues: Issue[];
+  bobDecision: BobDecision;
+  bobExecutionPlan: BobExecutionPlanItem[];
+  validationChecklist: ValidationChecklistItem[];
+};
+```
 
-- No database layer
-- No framework dependency in the viewer
-- No backend REST API for MVP
-- No direct provider calls from the viewer
-- No write operations to the analyzed repo
+## 9. MCP Server Package
 
-### Acceptance Criteria
+Folder:
+- `packages/mcp-server/src/`
 
-- One install command sets up the whole repo.
-- One build command compiles all TypeScript packages.
-- Shared schemas compile without circular dependencies.
-- Tool output contracts and report contracts stay deterministic.
+This package is responsible for:
+- starting the MCP server
+- registering tools
+- validating inputs
+- calling analysis functions
+- saving reports
+- opening the viewer
 
-## Workstream 2: Bob + MCP Orchestration
+This package is not responsible for:
+- Bob decision logic
+- rendering the viewer UI
+- writing into the analyzed repo
 
-### Goal
+### 9.1 `index.ts`
 
-Expose a local `STDIO` MCP toolbox that Bob can orchestrate adaptively through one focused custom mode.
+Implement:
+- MCP server bootstrap
+- tool registration
+- process startup
 
-### Deliverables
+Export or wire:
+- server creation
+- tool definitions for all 8 tools
 
-- local `STDIO` MCP server
-- Bob MCP config
-- Bob custom mode
-- smaller MCP tool handlers
-- report persistence tool
-- viewer auto-open integration
+### 9.2 `report-writer.ts`
 
-### MCP Tool Inventory
+Implement:
+- `buildReportId()`
+- `writeLatestReport(report)`
+- `writeHistoryReport(report)`
+- `updateReportManifest(entry)`
 
-- `discover_repo_scope`
-- `collect_runtime_evidence`
-- `inspect_dependency_blockers`
-- `inspect_ops_runtime`
-- `inspect_source_compatibility`
-- `compare_target_paths`
-- `save_modernization_report`
-- `open_report_viewer`
+This file writes to:
+- `reports/latest/report.json`
+- `reports/history/<timestamp>.json`
+- `reports/index.json`
 
-### Tool Design Requirements
+### 9.3 `viewer-runtime.ts`
 
-- Each tool must do one bounded job.
-- Tool outputs must be structured evidence or side effects, not a full user-facing report.
-- `compare_target_paths` must support direct versus staged upgrade comparisons when enough evidence exists.
-- `save_modernization_report` must accept both:
-  - MCP evidence references or payloads
-  - Bob-authored decision and plan fields
-- `open_report_viewer` must start or reuse the local viewer server and return the local URL.
+Implement:
+- `ensureViewerServerRunning()`
+- `openViewer(reportPath, autoOpenViewer)`
 
-### Common Tool Input Requirements
+This file should call into `packages/viewer-server/src/`.
 
-- `targetNodeVersion` must accept:
-  - exact version
-  - major version only
-- Tools must support optional `subdirectory`.
-- Tools must support `offline`.
-- Viewer tooling must support `autoOpenViewer`.
+### 9.4 `tools/discover-repo-scope.ts`
 
-### Common Tool Output Requirements
-
-- Every evidence tool must return:
-  - stable schema
-  - concise summary fields
-  - file-level evidence references
-  - issue identifiers when applicable
-- Comparison tool must return:
-  - compared target paths
-  - risk deltas
-  - effort deltas
-  - notable blockers by path
-- Save tool must return:
-  - `reportId`
-  - `reportPath`
-  - `historyPath`
-- Viewer tool must return:
-  - `viewerUrl`
-  - server status
-
-### Technical Requirements
-
-- Use local `STDIO` transport only.
-- Bob config must point to the built MCP server entrypoint.
-- The tool handlers must validate input with `zod`.
-- Resolve repo root from the Bob-opened workspace.
-- If `subdirectory` is provided, restrict analysis to that subproject.
-- Bob must be able to choose different tool paths for different repo situations.
-- Do not force a fixed call sequence in the MCP layer.
-- Return evidence to Bob, not the final conversational answer.
-
-### Bob Custom Mode Requirements
-
-- Mode name: `Modernization Architect`
-- Mode responsibilities:
-  - gather missing scope
-  - decide which MCP tools to call
-  - decide whether comparison is needed
-  - summarize exact incompatibilities
-  - choose a recommended migration path
-  - present implementation order
-  - persist the chosen plan
-  - open the viewer
-- Mode must cite MCP evidence in its reasoning.
-- Mode must not invent package replacements outside report data.
-- Mode must not promise code patches in MVP.
-- Mode response order:
-  - current state summary
-  - key blockers
-  - recommended path
-  - ordered implementation plan
-  - validation sequence
-
-### Acceptance Criteria
-
-- Bob can see and call the toolbox locally.
-- Invalid tool input returns typed validation errors.
-- Bob can choose different tool sequences for different scenarios.
-- Viewer URL opens automatically unless disabled.
-- Final report artifact contains both MCP evidence and Bob's selected plan.
-
-## Workstream 3: Evidence Engine
-
-### Goal
-
-Analyze one local Node.js repo or selected subdirectory and return composable evidence for Bob rather than a single all-in-one answer.
-
-### Deliverables
-
-- repo scanner
-- runtime/config detectors
-- package manager detector
-- dependency analyzer
-- source analyzer
-- provider abstraction layer
-- rule-based solution ranker
-- evidence pack builder
-- report writer support
-
-### Input Scope
-
-- local repo root
-- optional subdirectory
-- target Node version
-- offline mode flag
-
-### Files to Inspect
-
-- `package.json`
-- `package-lock.json`
-- `pnpm-lock.yaml`
-- `yarn.lock`
-- `.nvmrc`
-- `.node-version`
-- `Dockerfile*`
-- `.github/workflows/*.yml`
-- `.github/workflows/*.yaml`
-- `vercel.json`
-- `netlify.toml`
-- `Procfile`
-- shell scripts in common script paths
-- JS/TS source files
-- `tsconfig*.json`
-
-### Detection Modules
-
+Implement:
+- input validation
+- workspace detection
 - package manager detection
-- Node runtime evidence detection
-- dependency manifest analysis
-- lockfile analysis
-- Docker runtime analysis
-- GitHub Actions runtime analysis
-- deployment config runtime analysis
-- shell script runtime analysis
-- source-level API usage analysis
-- module-system compatibility analysis
+- selected subdirectory handling
 
-### Package Manager Detection Requirements
+Export function:
 
-- Preserve detected package manager in generated commands.
-- Use repo signals in this order:
-  - explicit lockfile
-  - workspace config
-  - `packageManager` field
-  - fallback to `npm`
+```ts
+export async function discoverRepoScope(
+  input: BaseToolInput
+): Promise<DiscoverRepoScopeResult>
+```
 
-### Runtime Analysis Requirements
+### 9.5 `tools/collect-runtime-evidence.ts`
 
-- Treat user-requested target version as authoritative.
-- Treat repo-declared versions as current-state evidence only.
-- Collect runtime evidence from:
-  - `engines.node`
-  - `.nvmrc`
-  - `.node-version`
-  - Docker base image tags
-  - GitHub Actions `setup-node`
-  - deployment config references
-  - shell scripts
+Implement:
+- read `package.json`
+- read `.nvmrc`
+- read `.node-version`
+- inspect Docker base image tags
+- inspect GitHub Actions `setup-node`
+- inspect deployment config
+- inspect script-level Node references
 
-### Dependency Analysis Requirements
+Export function:
 
-- Parse root and selected-subproject manifests.
-- Compare dependency ranges to target Node version constraints.
-- Read npm registry metadata through provider abstraction.
-- Read OSV vulnerability data through provider abstraction.
-- Apply internal JSON rules when live metadata is incomplete.
-- Generate same-ecosystem solution options only.
-- Never suggest package replacement outside the current package ecosystem in MVP.
+```ts
+export async function collectRuntimeEvidence(
+  input: BaseToolInput
+): Promise<CollectRuntimeEvidenceResult>
+```
 
-### Source Analysis Requirements
+### 9.6 `tools/inspect-dependency-blockers.ts`
 
-- Use `ts-morph` for JS/TS AST inspection.
-- Detect source-level incompatibilities such as:
-  - deprecated Node APIs
-  - unsupported runtime assumptions
-  - ESM/CJS friction indicators
-  - incompatible imports or required package major changes
-  - script invocations tied to older runtime behavior
-- Use heuristic scanning for:
-  - shell scripts
-  - Dockerfiles
-  - workflow YAML
-  - JSON deployment config
+Implement:
+- read manifest and lockfiles
+- call provider layer
+- create dependency issues
 
-### Knowledge Base Requirements
+Export function:
 
-- Store curated rules in JSON.
-- Rule categories:
-  - Node runtime deprecations
-  - common package compatibility notes
-  - CI/runtime upgrade rules
-  - deployment/runtime upgrade rules
-- Every rule must define:
-  - match conditions
-  - incompatibility reason
-  - default technical recommendation
-  - optional ranked alternatives
-  - evidence hints
+```ts
+export async function inspectDependencyBlockers(
+  input: BaseToolInput
+): Promise<InspectDependencyBlockersResult>
+```
 
-### Provider Layer Requirements
+### 9.7 `tools/inspect-ops-runtime.ts`
 
-- Provider interfaces:
-  - `NpmRegistryProvider`
-  - `OsvProvider`
-- Providers must be caching-ready by design.
-- Providers must expose typed responses.
-- Providers must isolate network errors from analysis logic.
-- Providers must support explicit offline mode.
-- Offline mode behavior:
-  - skip live calls
-  - continue local analysis
-  - mark external enrichment as skipped in report
+Implement:
+- CI runtime checks
+- Docker runtime checks
+- deployment config runtime checks
 
-### Evidence Output Requirements
+Export function:
 
-- Every issue must have a stable identifier that Bob can reference across turns.
-- Every issue must include exact evidence locations:
-  - file path
-  - package name
-  - config key
-  - source pattern
-- Every evidence output must be deterministic for test fixtures.
-- Comparison outputs must be machine-readable so Bob can compare paths cleanly.
+```ts
+export async function inspectOpsRuntime(
+  input: BaseToolInput
+): Promise<InspectOpsRuntimeResult>
+```
 
-### Report Generation Requirements
+### 9.8 `tools/inspect-source-compatibility.ts`
 
-- Write stable latest report path.
-- Write timestamped history copy per saved run.
-- Update `reports/index.json` on every saved run.
-- Persist:
-  - MCP evidence
-  - tool trace
-  - Bob decision
-  - Bob execution plan
-- Keep report JSON deterministic for test fixtures.
+Implement:
+- JS/TS AST checks using `ts-morph`
+- source-level Node API compatibility checks
+- ESM/CJS friction detection
 
-### Acceptance Criteria
+Export function:
 
-- Tools handle `npm`, `pnpm`, and `yarn` repos.
-- Tools handle offline mode without crashing.
-- Tools handle repo root or selected subdirectory.
-- Evidence outputs contain issue, reason, technical recommendation, alternatives, files, and validation steps for every finding.
+```ts
+export async function inspectSourceCompatibility(
+  input: BaseToolInput
+): Promise<InspectSourceCompatibilityResult>
+```
 
-## Workstream 4: Viewer UI
+### 9.9 `tools/compare-target-paths.ts`
 
-### Goal
+Implement:
+- compare direct upgrade path
+- compare staged upgrade path when applicable
+- calculate:
+  - `riskScore`
+  - `effortScore`
+  - blocker counts
 
-Render saved MCP evidence and Bob's chosen plan in a readable static viewer for local use and a hosted sample demo.
+Export function:
 
-### Deliverables
+```ts
+export async function compareTargetPaths(
+  input: BaseToolInput
+): Promise<CompareTargetPathsResult>
+```
 
-- local viewer assets
-- hosted demo viewer assets
-- local viewer server
-- report history selector
-- Bob decision rendering
-- evidence detail rendering
-- viewer config model
+### 9.10 `tools/save-modernization-report.ts`
 
-### Viewer Model
+Implement:
+- validate full report input
+- call `report-writer.ts`
+- return persisted file paths
 
-- Plain `HTML/CSS/JS`
-- No framework
-- Light theme only
-- One generic viewer page
-- One shared rendering script
-- One local manifest source
-- One demo manifest source
+Export function:
 
-### Local Viewer Requirements
+```ts
+export async function saveModernizationReport(
+  input: SaveModernizationReportInput
+): Promise<SaveModernizationReportResult>
+```
 
-- Serve viewer through built-in local server in the monorepo.
-- Auto-open viewer URL after report save by default.
-- Allow user to turn off auto-open.
-- Load reports from `reports/index.json`.
-- Support latest report view and history selector.
-- Read report detail JSON from:
-  - `reports/latest/report.json`
-  - `reports/history/<timestamp>.json`
-- Display:
-  - repo summary
-  - selected subdirectory
-  - requested target version
-  - evaluated target paths
-  - package manager
-  - offline/external data status
-  - Bob decision summary
-  - Bob's chosen migration path
-  - issue list
-  - incompatibility reason
-  - default technical recommendation
-  - ranked alternatives
-  - affected files
-  - evidence
-  - commands
-  - validation steps
-  - ordered implementation plan
-  - tool trace
+### 9.11 `tools/open-report-viewer.ts`
 
-### Hosted Demo Viewer Requirements
+Implement:
+- ensure local viewer server is running
+- optionally open browser
+- return viewer URL
 
-- Deploy as static assets to `Vercel or Netlify`.
-- No live repo access.
-- No live MCP integration.
-- Use committed sample report data only.
-- Use a static viewer config file that points to the sample manifest path.
-- Make the Bob versus MCP role split easy for judges to understand from the viewer alone.
+Export function:
 
-### Local Viewer Server Requirements
+```ts
+export async function openReportViewer(
+  input: OpenReportViewerInput
+): Promise<OpenReportViewerResult>
+```
 
-- Implement with Node built-in `http`.
-- Serve viewer assets.
-- Serve `reports/` JSON.
-- Serve one runtime config endpoint or config script for local report paths.
-- Handle missing report files with readable viewer messages.
-- Expose a stable local URL.
-- Support browser auto-open on:
+## 10. Analysis Engine Package
+
+Folder:
+- `packages/analysis-engine/src/`
+
+This package contains pure analysis logic and should not know about Bob.
+
+### 10.1 `detectors/package-manager.ts`
+
+Implement:
+- `detectPackageManager(repoRoot): "npm" | "pnpm" | "yarn"`
+
+Detection order:
+1. lockfile
+2. workspace config
+3. `packageManager` field
+4. fallback to `npm`
+
+### 10.2 `detectors/runtime-evidence.ts`
+
+Implement:
+- functions that collect runtime declarations from files
+
+### 10.3 `detectors/dependency-blockers.ts`
+
+Implement:
+- dependency compatibility checks
+- same-ecosystem upgrade options only
+
+### 10.4 `detectors/ops-runtime.ts`
+
+Implement:
+- Docker runtime checks
+- GitHub Actions runtime checks
+- deployment config runtime checks
+
+### 10.5 `detectors/source-compatibility.ts`
+
+Implement:
+- `ts-morph` based source checks
+- deprecated API detection
+- module system friction checks
+
+### 10.6 `rankers/target-paths.ts`
+
+Implement:
+- score direct path
+- score staged path
+- use:
+  - compatibility
+  - implementation effort
+  - source/config churn
+  - vulnerability exposure
+  - confidence of repo evidence
+
+## 11. Providers Package
+
+Folder:
+- `packages/providers/src/`
+
+This package owns external metadata access.
+
+### 11.1 `provider-types.ts`
+
+Define interfaces for:
+- `NpmRegistryProvider`
+- `OsvProvider`
+
+### 11.2 `npm-registry-provider.ts`
+
+Implement:
+- fetch npm metadata
+- return typed results
+- handle offline mode by skipping calls
+
+### 11.3 `osv-provider.ts`
+
+Implement:
+- fetch OSV vulnerability data
+- return typed results
+- handle offline mode by skipping calls
+
+Rule:
+- network errors must not crash the full analysis
+
+## 12. Knowledge Base Package
+
+Folder:
+- `packages/knowledge-base/data/`
+
+Create and maintain:
+- `node-runtime-rules.json`
+- `package-compatibility-rules.json`
+- `ci-runtime-rules.json`
+- `deployment-runtime-rules.json`
+
+Each rule entry must contain:
+- match conditions
+- incompatibility reason
+- default technical recommendation
+- optional ranked alternatives
+- evidence hints
+
+## 13. Viewer Server Package
+
+Folder:
+- `packages/viewer-server/src/`
+
+### 13.1 `server.ts`
+
+Implement:
+- `startViewerServer()`
+- serve static viewer assets
+- serve report JSON files
+- serve runtime config if needed
+
+### 13.2 `browser-open.ts`
+
+Implement:
+- open browser on:
   - macOS
   - Linux
   - Windows
 
-### UI Structure Requirements
+### 13.3 `config.ts`
 
-- Sidebar or top navigation for:
-  - Bob recommendation
-  - evidence
-  - implementation plan
-  - validation
-  - tool trace
-  - history
-- Issue cards must be collapsible.
-- File paths and commands must be copyable.
-- History selector must load older reports without page reload if possible.
-- Viewer must work on desktop and laptop screens.
+Implement:
+- viewer server config
+- local port definition
+- path resolution helpers
 
-### Acceptance Criteria
+Use these exact rules:
+- default port: `4173`
+- override port with `process.env.VIEWER_PORT`
+- bind to `127.0.0.1`
+- generate viewer URL as `http://127.0.0.1:<port>/`
 
-- Latest report loads automatically.
-- User can switch to a previous report.
-- Local viewer works from built-in local server.
-- Hosted demo viewer works without a backend.
-- Viewer clearly shows both:
-  - what Bob decided
-  - what MCP found
+## 14. Viewer App
 
-## Workstream 5: Testing
+Folder:
+- `apps/viewer/`
 
-### Goal
+This app renders saved report artifacts.
 
-Make the evidence tools, report writer, Bob-facing orchestration layer, and viewer deterministic and safe to demo.
+### 14.1 `index.html`
 
-### Deliverables
+Must contain sections for:
+- Bob recommendation
+- evaluated target paths
+- issues
+- evidence
+- execution plan
+- validation checklist
+- tool trace
+- history selector
 
-- unit tests
-- integration tests
-- fixture repos
-- schema tests
-- offline-mode tests
-- viewer DOM tests
+### 14.2 `styles.css`
 
-### Tooling
+Style the viewer for:
+- desktop
+- laptop
+- clean judge demo
 
-- `vitest`
+### 14.3 `app.js`
 
-### Test Layers
+Implement:
+- load `reports/index.json`
+- load latest report by default
+- render report sections
+- switch history entries
 
-- `shared`
-  - schema validation tests
-  - type inference tests
-- `knowledge-base`
-  - rule file shape tests
-  - rule application tests
-- `providers`
-  - online response mapping tests
-  - offline skip tests
-  - network failure handling tests
-- `analysis-engine`
-  - package manager detection tests
-  - runtime evidence aggregation tests
-  - dependency resolution tests
-  - AST detection tests
-  - alternative ranking tests
-  - evidence output tests
-  - report writer tests
-- `mcp-server`
-  - input validation tests
-  - per-tool orchestration tests
-  - comparison tool tests
-  - save report tests
-  - auto-open enabled/disabled tests
-- `viewer`
-  - manifest loading tests
-  - history selector tests
-  - Bob decision rendering tests
-  - issue rendering tests
-  - tool trace rendering tests
-  - empty/error state tests
+### 14.4 `viewer-config.demo.js`
 
-### Required Fixtures
+Implement:
+- sample-data mode for hosted demo viewer
 
-- `npm` repo fixture
-- `pnpm` repo fixture
-- `yarn` repo fixture
-- repo with Dockerfile runtime mismatch
-- repo with GitHub Actions runtime mismatch
-- repo with deployment config mismatch
-- repo with JS/TS source-level incompatibility
-- offline fixture run with provider stubs
+## 15. Saved Artifact Rules
 
-### Acceptance Criteria
+### 15.1 Files to write
 
-- All schema contracts are validated by tests.
-- Report JSON is stable for fixture snapshots.
-- Viewer renders fixture reports correctly.
-- Offline mode passes without network access.
-- Saved reports preserve both evidence and Bob decision fields.
+Always write:
+- `reports/latest/report.json`
+- `reports/history/<timestamp>.json`
+- `reports/index.json`
 
-## Workstream 6: Deployment
+### 15.2 What the saved report must contain
 
-### Goal
+The saved report must contain both:
+- MCP evidence
+- Bob's chosen decision and execution plan
 
-Package the local Bob-first toolchain for usage in Bob and publish a static hosted viewer for judges.
+This is important:
+- MCP is not only a scanner
+- Bob is not only a UI
+- the saved artifact must preserve both layers
 
-### Deliverables
+### 15.3 One normalized report only
 
-- local build instructions
-- Bob config instructions
-- static hosted demo viewer
-- sample report sync flow
+For the MVP, save only:
+- one normalized final report JSON
+- one concise `toolTrace` inside that report
+- one report manifest
 
-### Local Tool Requirements
+Do not save:
+- raw per-tool payload files
+- separate debug payload directories
+- duplicate report formats
 
-- `npm install` must install all workspaces.
-- `npm run build` must compile the MCP server and analysis packages.
-- Bob config must point to the built local MCP entrypoint.
-- Local viewer server must start from project code, not an external global dependency.
-- Sample report generation must not be required for real local usage.
+## 16. Developer Assignment Plan
 
-### Hosted Demo Viewer Requirements
+Use this exact split for 4 developers.
 
-- Deploy only static assets and sample report data.
-- Do not expose local repo paths from the sample report.
-- Provide one demo report and one sample history entry if possible.
-- Hosting target in plan text:
-  - `Vercel or Netlify`
-  - implementation owner chooses
+### Dev 1: Bob + MCP Orchestration
 
-### Operational Constraints
+Own these paths:
+- `.bob/*`
+- `packages/mcp-server/*`
 
-- No database
-- No backend hosting
-- No secrets required for core local analysis
-- Network access optional for external enrichment
-- Hosted demo viewer must still work without live providers
+Exact files to implement first:
+- `.bob/mcp.json`
+- `.bob/custom_modes.yaml`
+- `.bob/rules-modernization-architect/01-role.md`
+- `.bob/rules-modernization-architect/02-workflow.md`
+- `packages/mcp-server/src/index.ts`
+- `packages/mcp-server/src/report-writer.ts`
+- `packages/mcp-server/src/viewer-runtime.ts`
+- `packages/mcp-server/src/tools/discover-repo-scope.ts`
+- `packages/mcp-server/src/tools/save-modernization-report.ts`
+- `packages/mcp-server/src/tools/open-report-viewer.ts`
 
-### Acceptance Criteria
+Build:
+- project Bob config
+- custom mode
+- MCP tool registration
+- report save flow
+- viewer open flow
 
-- Local Bob integration can be set up from docs.
-- Hosted viewer opens without backend dependencies.
-- Demo sample can be refreshed from a real generated report.
+Exact tasks:
+1. Configure `.bob/mcp.json` so Bob can launch `packages/mcp-server/dist/index.js`.
+2. Configure `.bob/custom_modes.yaml` with the `modernization-architect` mode.
+3. Write Bob rules files so Bob:
+   - asks for missing scope
+   - calls MCP tools adaptively
+   - saves the report
+   - opens the viewer
+   - writes the final chat report
+4. In `packages/mcp-server/src/index.ts`, register all 8 MCP tools.
+5. In `report-writer.ts`, implement latest-report write, history-report write, and manifest update.
+6. In `viewer-runtime.ts`, implement local viewer startup and browser-open flow.
+7. Implement the three orchestration-side tools first:
+   - `discover_repo_scope`
+   - `save_modernization_report`
+   - `open_report_viewer`
+8. Wire validation to shared `zod` schemas from `packages/shared`.
 
-## Workstream 7: Demo & Docs
+Do not build:
+- deep repo scanning logic
+- viewer rendering
 
-### Goal
+Done when:
+- Bob can see all 8 tools
+- tool validation works
+- save and open flows work
 
-Make the Bob-first workflow easy to install, demo, judge, and explain.
+### Dev 2: Evidence Engine
 
-### Deliverables
+Own these paths:
+- `packages/analysis-engine/*`
+- `packages/providers/*`
+- `packages/knowledge-base/*`
 
-- `README.md`
-- Bob setup guide
-- local run guide
-- hosted demo guide
-- sample prompt set
-- demo script
-- architecture diagram
-- known limitations section
+Exact files to implement first:
+- `packages/analysis-engine/src/detectors/package-manager.ts`
+- `packages/analysis-engine/src/detectors/runtime-evidence.ts`
+- `packages/analysis-engine/src/detectors/dependency-blockers.ts`
+- `packages/analysis-engine/src/detectors/ops-runtime.ts`
+- `packages/analysis-engine/src/detectors/source-compatibility.ts`
+- `packages/analysis-engine/src/rankers/target-paths.ts`
+- `packages/providers/src/provider-types.ts`
+- `packages/providers/src/npm-registry-provider.ts`
+- `packages/providers/src/osv-provider.ts`
+- `packages/knowledge-base/data/*.json`
 
-### Documentation Requirements
+Build:
+- runtime evidence collection
+- dependency blocker analysis
+- ops/runtime analysis
+- source compatibility analysis
+- target path comparison
 
-- Setup docs must cover:
-  - install
-  - build
-  - Bob MCP config
-  - custom mode setup
-  - running adaptive analysis
-  - saving the report
-  - opening the local viewer
-- README must explain:
-  - local Bob workflow
-  - Bob versus MCP role split
-  - hosted demo viewer role
-  - offline mode behavior
-  - supported file types
-  - supported package managers
-  - out-of-scope items
-- Demo script must show:
-  - local repo in Bob
-  - one target version prompt
-  - Bob asking at least one meaningful scoping question
-  - multiple MCP tool calls
-  - Bob choosing a migration path
-  - viewer auto-open
-  - issue list
-  - implementation plan
-  - validation checklist
+Exact tasks:
+1. Implement package manager detection with the required precedence order.
+2. Implement runtime evidence extraction from:
+   - `package.json`
+   - `.nvmrc`
+   - `.node-version`
+   - Docker files
+   - GitHub Actions workflows
+   - deployment config
+   - scripts
+3. Implement dependency blocker analysis using manifests, lockfiles, providers, and knowledge-base rules.
+4. Implement ops/runtime mismatch detection for CI, Docker, and deployment config.
+5. Implement source-level compatibility checks with `ts-morph`.
+6. Implement target-path comparison with:
+   - direct path
+   - staged path
+   - `riskScore`
+   - `effortScore`
+7. Implement provider interfaces and offline-safe provider behavior.
+8. Keep outputs deterministic and shaped exactly like shared schemas.
 
-### Acceptance Criteria
+Do not build:
+- Bob config
+- viewer UI
 
-- A new developer can run the tool from docs only.
-- Judges can understand the hosted demo viewer without running Bob.
-- Demo path fits in a short live presentation.
+Done when:
+- all evidence tools can return deterministic outputs
+- offline mode is supported
 
-## Execution Order
+### Dev 3: Viewer
 
-### Phase 1
+Own these paths:
+- `apps/viewer/*`
+- `packages/viewer-server/*`
 
-- scaffold monorepo
-- add shared schemas
-- add knowledge base structure
-- add MCP skeleton
+Exact files to implement first:
+- `packages/viewer-server/src/server.ts`
+- `packages/viewer-server/src/browser-open.ts`
+- `packages/viewer-server/src/config.ts`
+- `apps/viewer/index.html`
+- `apps/viewer/styles.css`
+- `apps/viewer/app.js`
+- `apps/viewer/viewer-config.demo.js`
 
-### Phase 2
+Build:
+- local viewer server
+- viewer rendering
+- history selector
+- Bob recommendation section
+- tool trace section
 
-- implement package manager detection
-- implement runtime/config detectors
-- implement provider layer
-- implement evidence tool outputs
+Exact tasks:
+1. In `server.ts`, serve:
+   - viewer static files
+   - `reports/latest/report.json`
+   - `reports/history/*.json`
+   - `reports/index.json`
+2. In `browser-open.ts`, implement browser-open behavior for macOS, Linux, and Windows.
+3. In `config.ts`, define local port and report-path resolution helpers.
+4. In `apps/viewer/index.html`, create containers for:
+   - Bob recommendation
+   - evaluated target paths
+   - issues
+   - evidence
+   - execution plan
+   - validation checklist
+   - tool trace
+   - history selector
+5. In `apps/viewer/app.js`, implement:
+   - manifest loading
+   - latest report loading
+   - history switching
+   - section rendering
+6. In `viewer-config.demo.js`, support hosted sample-data mode.
 
-### Phase 3
+Do not build:
+- analysis logic
+- Bob custom mode
 
-- implement source AST analysis
-- implement target path comparison
-- implement report writer and `reports/index.json`
+Done when:
+- latest report loads
+- history switching works
+- viewer shows Bob recommendation and MCP evidence clearly
 
-### Phase 4
+### Dev 4: Shared Contracts + Tests
 
-- build local viewer server
-- build local viewer page
-- add auto-open flow
+Own these paths:
+- `packages/shared/*`
+- test fixtures
+- report snapshots
+- schema and integration tests
 
-### Phase 5
+Exact files to implement first:
+- `packages/shared/src/schemas/report.ts`
+- `packages/shared/src/schemas/tool-results.ts`
+- `packages/shared/src/schemas/manifest.ts`
+- `packages/shared/src/types/report.ts`
+- `packages/shared/src/types/tools.ts`
+- `packages/shared/src/constants/tool-names.ts`
+- `packages/shared/src/constants/report-paths.ts`
 
-- add Bob custom mode
-- add fixture tests
-- add hosted demo viewer sample flow
-- finalize docs and demo script
+Build:
+- `zod` schemas
+- shared types
+- tool name constants
+- report path constants
+- fixture and snapshot tests
 
-## Post-Hackathon Roadmap
+Exact tasks:
+1. Define all shared schemas before other devs implement logic against them.
+2. Export inferred TypeScript types from schemas.
+3. Create tool-name constants and report-path constants.
+4. Add fixture data for:
+   - npm repo
+   - pnpm repo
+   - yarn repo
+   - Docker mismatch
+   - CI mismatch
+   - source compatibility mismatch
+5. Add report snapshot tests for saved artifacts.
+6. Add schema validation tests so all teams can rely on stable contracts.
 
-- remote `HTTP` MCP server
-- patch generation for low-risk changes
-- package replacement suggestions across ecosystems
-- multi-subproject monorepo reports
-- persistent report history and search
-- advisory source expansion
-- richer diff between current and target runtime states
-- team sharing and collaboration
+Do not build:
+- final analysis logic
+- viewer styling
+
+Done when:
+- schemas compile
+- snapshots are stable
+- other devs can import contracts without redefining them
+
+## 17. Implementation Sequence
+
+Do these steps in order.
+
+### Step 1
+
+Create the full folder/file scaffold and root workspace setup.
+
+Actual work:
+1. Create every folder listed in Section 3.
+2. Create every file listed in Section 3.
+3. Add root workspace `package.json`.
+4. Add root TypeScript, ESLint, and Prettier config.
+
+### Step 2
+
+Implement `packages/shared` contracts first.
+
+Actual work:
+1. Define tool input/output schemas.
+2. Define report schema.
+3. Define report manifest schema.
+4. Export constants and inferred types.
+5. Do not let other devs invent their own local copies of these types.
+
+### Step 3
+
+Implement Bob config and MCP server skeleton.
+
+Actual work:
+1. Create `.bob/mcp.json`.
+2. Create `.bob/custom_modes.yaml`.
+3. Create Bob rules files.
+4. Register all 8 tools in `packages/mcp-server/src/index.ts`.
+5. Stub each tool file with the correct exported function.
+
+### Step 4
+
+Implement evidence engine and provider logic.
+
+Actual work:
+1. Implement package manager detection.
+2. Implement runtime evidence detector.
+3. Implement dependency blocker detector.
+4. Implement ops/runtime detector.
+5. Implement source compatibility detector.
+6. Implement provider fetchers and offline behavior.
+7. Implement target path ranking.
+
+### Step 5
+
+Implement report writing and viewer server.
+
+Actual work:
+1. Implement latest report write.
+2. Implement history report write.
+3. Implement manifest update.
+4. Implement local viewer server.
+5. Implement browser-open helper.
+
+### Step 6
+
+Implement viewer UI against saved report files.
+
+Actual work:
+1. Build viewer layout.
+2. Render Bob recommendation.
+3. Render issues and evidence.
+4. Render tool trace and history selector.
+5. Load reports from the local manifest.
+
+### Step 7
+
+Wire Bob mode to use the MCP tools and save/open the final report.
+
+Actual work:
+1. Make Bob ask missing questions.
+2. Make Bob call evidence tools.
+3. Make Bob call comparison tool when needed.
+4. Make Bob choose the final path.
+5. Make Bob call `save_modernization_report`.
+6. Make Bob call `open_report_viewer`.
+
+### Step 8
+
+Add fixture tests and sample demo data.
+
+Actual work:
+1. Add fixture repos and sample report data.
+2. Add schema tests.
+3. Add snapshot tests.
+4. Add viewer render tests.
+
+## 18. Meaning of "Create the Repo Scaffold"
+
+This replaces the vague wording "freeze folder structure."
+
+What it means in practice:
+- create the agreed folders now
+- create the agreed files now
+- do not move files to different packages after work is assigned
+- do not rename MCP tools after work is assigned
+- do not rename report fields after work is assigned
+
+Why:
+- each dev needs a stable home for their work
+- imports, schemas, and ownership depend on these paths
+- moving files after parallel work starts creates merge conflicts and broken assumptions
+
+## 19. Final Acceptance Criteria
+
+The MVP is ready when:
+
+1. Bob can run the `Modernization Architect` mode in the project.
+2. Bob can call the MCP toolbox locally through `STDIO`.
+3. MCP tools return structured evidence.
+4. Bob chooses the final migration path and writes the final chat report.
+5. The saved artifact contains both evidence and Bob's chosen plan.
+6. The viewer opens locally and renders the saved report correctly.
+7. Hosted demo viewer can show committed sample data without live analysis.
