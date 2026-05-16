@@ -24,7 +24,19 @@ const elements = {
 };
 
 function resolveAgainst(baseUrl, relativePath) {
-  return new URL(relativePath, baseUrl).toString();
+  // Manifest paths come in two shapes in this project:
+  //  - "./reports/foo.json" — relative to the manifest's own URL
+  //    (used by the committed demo sample at apps/viewer/sample/)
+  //  - "reports/latest/foo.json" — relative to the project root, i.e.
+  //    server-absolute (what the MCP report-writer emits)
+  // Treat anything that doesn't start with "./" or "../" as server-absolute,
+  // so both Dev 1's live manifest and the demo sample resolve correctly.
+  if (relativePath.startsWith('./') || relativePath.startsWith('../')) {
+    return new URL(relativePath, baseUrl).toString();
+  }
+  const origin = new URL(baseUrl).origin;
+  const absolute = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+  return new URL(absolute, origin).toString();
 }
 
 async function fetchJson(url) {

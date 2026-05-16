@@ -181,6 +181,114 @@ Why:
   reconstruct an honest log, so I did it now rather than starting blank.
 - Going forward, entries are appended live as I work.
 
+### 2026-05-16 — Section 16 acceptance test harness
+
+What I did:
+- Initially created `.localtests/` and added it to `.gitignore`. Then a
+  rebase pulled in Dev 2's commit `b521b24` which already added
+  `tests-local/` to `.gitignore` as the team-wide convention for per-dev
+  local verification scripts. Renamed `.localtests/` → `tests-local/` to
+  match and dropped my custom `.gitignore` entry (Dev 2's already covers
+  it).
+- Created `tests-local/package.json` pinning `jsdom@^25` and ran
+  `npm install` inside that directory only — no devDeps added to the
+  team's root `package.json`.
+- Wrote `tests-local/run.mjs` — a single Node script that spawns the built
+  `viewer-server`, then runs one block of checks per Section 16 "Done when"
+  bullet:
+  - Criterion 1: starts with default port, kills, restarts with `VIEWER_PORT=4555`,
+    confirms the override binds and the default no longer responds.
+  - Criterion 2: `GET /` returns HTML (not JSON, not a directory listing).
+  - Criterion 3: 200s for `/`, `/app.js`, `/styles.css`, `/reports/index.json`,
+    `/reports/latest/report.json`.
+  - Criterion 4 + 5: loads the page through jsdom with `runScripts:
+    'dangerously'`, polyfills `window.fetch` (jsdom doesn't ship one),
+    waits for `boot()` to finish, then asserts every required section id
+    is present AND that `decision-title`, `decision-summary`, `report-meta`,
+    `target-paths`, and `history-select` actually contain content derived
+    from the loaded report.
+  - Criterion 6: dispatches a `change` event on `#history-select`, asserts
+    `beforeunload` did NOT fire and that the visible meta updated.
+  - Criterion 7: confirms `/index.demo.html` is served, that it loads
+    `viewer-config.demo.js` *before* `app.js`, that the live `/` does not
+    load the demo config, and that rendering the demo entry produces a
+    decision title matching the sample report.
+  - Bonus: `/reports/../../etc/passwd` is not served (path-traversal guard).
+
+Why:
+- The Section 16 bullets are the contract for "Dev 3 done". Verifying them
+  manually in a browser doesn't survive future regressions and isn't
+  reproducible. A scripted runner does.
+- jsdom + polyfilled fetch lets me actually execute `app.js` against the
+  real server, so render tests reflect real behavior — not just static
+  checks on the HTML source.
+
+### 2026-05-16 — Live-manifest path-resolution bug found and fixed
+
+File changed:
+- `apps/viewer/app.js` — `resolveAgainst(baseUrl, relativePath)`.
+
+What I did:
+- First run of the test suite showed criterion 4–6 failing with
+  `decision-title === "Viewer failed to load"`. Built a one-off debug
+  script that printed `decision-summary` (the error text). It said
+  `fetch is not defined` — fixed by polyfilling `window.fetch` in the
+  jsdom `beforeParse` hook.
+- Second run showed criteria 4–6 still failing for the live URL, but
+  criterion 7 (demo) fully passing. Read `reports/index.json` (written by
+  Dev 1's MCP `save_modernization_report`): paths are
+  `"reports/latest/report.json"` and `"reports/history/<id>.json"` —
+  project-root-relative, no `./` prefix.
+- Read my own `apps/viewer/sample/index.json`: paths are
+  `"./reports/sample-report.json"` — relative to the manifest's URL.
+- Two different conventions for the same field. The URL spec, applied to
+  `"reports/latest/report.json"` against base
+  `http://127.0.0.1:4173/reports/index.json`, resolves to
+  `http://127.0.0.1:4173/reports/reports/latest/report.json` → 404.
+- Updated `resolveAgainst` so paths starting with `./` or `../` stay
+  manifest-URL-relative (the existing behavior the demo sample expects),
+  and any other path is treated as server-absolute (project-root-relative,
+  matching what Dev 1's writer produces). Paths already starting with `/`
+  are also treated as absolute.
+
+Why:
+- The cross-team manifest format wasn't pinned in `technical_plan.md`
+  Section 7.5 — only the field names and types are specified, not the
+  semantics of the path string. Dev 1 picked project-root-relative when
+  writing; the sample I'd inherited uses manifest-relative. Both are
+  defensible.
+- I own the viewer, so making the reader tolerate both shapes is the
+  lowest-coordination fix. No change to Dev 1's MCP code, no change to
+  the sample data, and the contract section of the plan doesn't need
+  amending.
+- The fix is safe: the server only routes `/reports/*` and `/sample/*` with
+  traversal guards, so prefixing with `/` and fetching cannot escape the
+  intended directories.
+
+What I learned:
+- The plan's contract section under-specified the manifest path semantics.
+  Worth flagging to Dev 4 (shared contracts) so a future version of
+  `reportManifestSchema` can either document or enforce one convention.
+
+### 2026-05-16 — Final test run
+
+What I did:
+- Re-ran `node tests-local/run.mjs`. All 44 checks pass:
+  - 4 binding checks
+  - 5 root-is-HTML checks
+  - 5 required-path checks
+  - 16 live-render checks (DOM presence + content from loaded report)
+  - 3 history-switch checks
+  - 8 demo-mode checks
+  - 1 traversal check
+- Verified `tests-local/` is invisible to git (`git status` shows only
+  `.gitignore` and `apps/viewer/app.js`).
+
+Why:
+- Going from a real failure (`Viewer failed to load`) to a clean pass with
+  the same harness gives me confidence the bug is actually fixed and not
+  just hidden by a more lenient assertion.
+
 ## Convention for future entries
 
 Each entry uses:
