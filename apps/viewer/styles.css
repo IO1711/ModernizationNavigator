@@ -17,9 +17,9 @@
   --s-6: 28px;
   --s-7: 40px;
 
-  --bg: #f6f7f9;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f3f4f6;
+  --surface-2: #fafafa;
   --rail-bg: #ffffff;
   --topbar-bg: #ffffff;
   --border: rgba(15, 23, 42, 0.08);
@@ -27,8 +27,8 @@
   --text: #0f172a;
   --text-secondary: #334155;
   --muted: #64748b;
-  --accent: #1d4ed8;
-  --accent-bg: rgba(29, 78, 216, 0.08);
+  --accent: #2563eb;
+  --accent-bg: rgba(37, 99, 235, 0.08);
   --accent-text: #ffffff;
   --success: #15803d;
   --success-bg: rgba(21, 128, 61, 0.1);
@@ -45,19 +45,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0a0c11;
-    --surface: #11141b;
-    --surface-2: #161a23;
-    --rail-bg: #0d1016;
-    --topbar-bg: #0d1016;
+    --bg: #000000;
+    --surface: #0a0a0a;
+    --surface-2: #141414;
+    --rail-bg: #0a0a0a;
+    --topbar-bg: #0a0a0a;
     --border: rgba(255, 255, 255, 0.07);
     --border-strong: rgba(255, 255, 255, 0.16);
     --text: #e6e8ec;
     --text-secondary: #c5c9d3;
     --muted: #8c93a0;
-    --accent: #7eb6ff;
-    --accent-bg: rgba(126, 182, 255, 0.14);
-    --accent-text: #0a0c11;
+    --accent: #60a5fa;
+    --accent-bg: rgba(96, 165, 250, 0.16);
+    --accent-text: #ffffff;
     --success: #4ade80;
     --success-bg: rgba(74, 222, 128, 0.14);
     --warning: #fbbf24;
@@ -169,12 +169,12 @@ a:hover { text-decoration: underline; }
   font-variant-numeric: tabular-nums;
 }
 .rail-link.active .rail-badge {
-  background: rgba(29, 78, 216, 0.16);
+  background: rgba(37, 99, 235, 0.16);
   color: var(--accent);
 }
 @media (prefers-color-scheme: dark) {
   .rail-link.active .rail-badge {
-    background: rgba(126, 182, 255, 0.22);
+    background: rgba(96, 165, 250, 0.22);
   }
 }
 .rail-badge.zero { opacity: 0.4; }

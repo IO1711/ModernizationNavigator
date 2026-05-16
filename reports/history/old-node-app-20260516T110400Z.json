@@ -1,0 +1,490 @@
+{
+  "reportId": "old-node-app-20260516T110400Z",
+  "createdAt": "2026-05-16T11:04:00.000Z",
+  "repoRoot": "/Users/claudianapolitano/mn-targets/old-node-app",
+  "requestedTargetNodeVersion": "20",
+  "evaluatedTargetNodeVersions": ["16", "18", "20"],
+  "detectedPackageManager": "npm",
+  "offlineMode": false,
+  "externalDataStatus": {
+    "npmRegistry": "used",
+    "osv": "used",
+    "notes": []
+  },
+  "toolTrace": [
+    {
+      "toolName": "discover_repo_scope",
+      "purpose": "Identify repository structure and package manager",
+      "status": "success",
+      "startedAt": "2026-05-16T11:02:00.000Z",
+      "finishedAt": "2026-05-16T11:02:01.000Z",
+      "resultSummary": "Single-project repository using npm"
+    },
+    {
+      "toolName": "collect_runtime_evidence",
+      "purpose": "Gather Node version pins across infrastructure",
+      "status": "success",
+      "startedAt": "2026-05-16T11:02:01.000Z",
+      "finishedAt": "2026-05-16T11:02:02.000Z",
+      "resultSummary": "Found 4 Node 14 pins: .nvmrc, package.json engines, Dockerfile, CI workflow"
+    },
+    {
+      "toolName": "inspect_dependency_blockers",
+      "purpose": "Identify incompatible dependencies",
+      "status": "success",
+      "startedAt": "2026-05-16T11:02:02.000Z",
+      "finishedAt": "2026-05-16T11:02:03.000Z",
+      "resultSummary": "Found 2 critical blockers: request (deprecated), node-sass (deprecated)"
+    },
+    {
+      "toolName": "inspect_ops_runtime",
+      "purpose": "Check CI and deployment configuration",
+      "status": "success",
+      "startedAt": "2026-05-16T11:02:03.000Z",
+      "finishedAt": "2026-05-16T11:02:04.000Z",
+      "resultSummary": "CI and Docker both pinned to Node 14"
+    },
+    {
+      "toolName": "inspect_source_compatibility",
+      "purpose": "Analyze source code for deprecated APIs",
+      "status": "success",
+      "startedAt": "2026-05-16T11:02:04.000Z",
+      "finishedAt": "2026-05-16T11:02:05.000Z",
+      "resultSummary": "No deprecated Node APIs detected in source"
+    },
+    {
+      "toolName": "compare_target_paths",
+      "purpose": "Compare direct vs staged upgrade paths",
+      "status": "success",
+      "startedAt": "2026-05-16T11:02:05.000Z",
+      "finishedAt": "2026-05-16T11:02:06.000Z",
+      "resultSummary": "Staged path recommended due to critical dependency blockers"
+    }
+  ],
+  "runtimeEvidence": [
+    {
+      "source": ".nvmrc",
+      "filePath": ".nvmrc",
+      "value": "14.17.0",
+      "kind": "nvmrc"
+    },
+    {
+      "source": "package.json engines.node",
+      "filePath": "package.json",
+      "value": "14.x",
+      "kind": "engines"
+    },
+    {
+      "source": "Dockerfile FROM",
+      "filePath": "Dockerfile",
+      "value": "node:14-alpine",
+      "kind": "docker"
+    },
+    {
+      "source": "GitHub Actions setup-node",
+      "filePath": ".github/workflows/ci.yml",
+      "value": "14",
+      "kind": "github-actions"
+    }
+  ],
+  "issues": [
+    {
+      "id": "dep-request-deprecated",
+      "category": "dependency",
+      "title": "Deprecated 'request' package blocks Node 20 migration",
+      "issue": "The 'request' package (v2.88.2) has been deprecated since 2020 and is not compatible with Node 20",
+      "incompatibilityReason": "Package is unmaintained, has known security vulnerabilities, and lacks Node 20 support",
+      "defaultTechnicalRecommendation": "Replace 'request' with 'axios' or native 'node-fetch'",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Replace with axios",
+          "summary": "Modern, promise-based HTTP client with excellent Node 20 support",
+          "targetVersionRange": "^1.6.0",
+          "rationale": "Most popular replacement, well-maintained, similar API surface",
+          "tradeoffs": ["Requires code changes", "Different error handling"],
+          "commands": ["npm uninstall request", "npm install axios@^1.6.0"]
+        },
+        {
+          "rank": 2,
+          "title": "Replace with node-fetch",
+          "summary": "Lightweight fetch API implementation for Node.js",
+          "targetVersionRange": "^3.3.0",
+          "rationale": "Minimal API, follows browser fetch standard",
+          "tradeoffs": ["Requires code refactoring", "Less feature-rich than axios"],
+          "commands": ["npm uninstall request", "npm install node-fetch@^3.3.0"]
+        }
+      ],
+      "affectedFiles": ["package.json", "server.js"],
+      "evidence": [
+        {
+          "kind": "package",
+          "filePath": "package.json",
+          "summary": "request@2.88.2 declared in dependencies",
+          "line": 7,
+          "packageName": "request"
+        },
+        {
+          "kind": "source",
+          "filePath": "server.js",
+          "summary": "request module imported",
+          "line": 2,
+          "snippet": "const request = require('request');"
+        }
+      ],
+      "recommendedCommands": [
+        "npm uninstall request",
+        "npm install axios@^1.6.0",
+        "# Update server.js to use axios instead of request"
+      ],
+      "validationSteps": [
+        {
+          "title": "Verify axios installation",
+          "commands": ["npm list axios"],
+          "expectedResult": "axios@1.6.x listed in dependencies"
+        },
+        {
+          "title": "Test HTTP requests",
+          "commands": ["npm start", "curl http://localhost:3000"],
+          "expectedResult": "Server responds successfully"
+        }
+      ]
+    },
+    {
+      "id": "dep-node-sass-deprecated",
+      "category": "dependency",
+      "title": "Deprecated 'node-sass' package blocks Node 20 migration",
+      "issue": "The 'node-sass' package (v4.14.1) is deprecated and incompatible with Node 20",
+      "incompatibilityReason": "node-sass uses native bindings that are not available for Node 20, package is unmaintained",
+      "defaultTechnicalRecommendation": "Replace 'node-sass' with 'sass' (Dart Sass)",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Replace with sass (Dart Sass)",
+          "summary": "Official Sass implementation, pure JavaScript, no native dependencies",
+          "targetVersionRange": "^1.69.0",
+          "rationale": "Official replacement, no native bindings, full Node 20 support",
+          "tradeoffs": ["Slightly slower than node-sass", "API differences"],
+          "commands": ["npm uninstall node-sass", "npm install sass@^1.69.0"]
+        }
+      ],
+      "affectedFiles": ["package.json"],
+      "evidence": [
+        {
+          "kind": "package",
+          "filePath": "package.json",
+          "summary": "node-sass@4.14.1 declared in dependencies",
+          "line": 8,
+          "packageName": "node-sass"
+        }
+      ],
+      "recommendedCommands": [
+        "npm uninstall node-sass",
+        "npm install sass@^1.69.0"
+      ],
+      "validationSteps": [
+        {
+          "title": "Verify sass installation",
+          "commands": ["npm list sass"],
+          "expectedResult": "sass@1.69.x listed in dependencies"
+        }
+      ]
+    },
+    {
+      "id": "dep-express-outdated",
+      "category": "dependency",
+      "title": "Express version needs update for Node 20",
+      "issue": "Express v4.16.0 is outdated and should be updated to v4.18+ for Node 20",
+      "incompatibilityReason": "Older versions have security vulnerabilities and may have compatibility issues",
+      "defaultTechnicalRecommendation": "Update express to v4.18.2 or later",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Update to Express 4.18.2",
+          "summary": "Latest stable v4 release with Node 20 support",
+          "targetVersionRange": "^4.18.2",
+          "rationale": "Maintains v4 API compatibility while adding Node 20 support",
+          "tradeoffs": ["Minor API changes possible"],
+          "commands": ["npm install express@^4.18.2"]
+        }
+      ],
+      "affectedFiles": ["package.json"],
+      "evidence": [
+        {
+          "kind": "package",
+          "filePath": "package.json",
+          "summary": "express@4.16.0 declared in dependencies",
+          "line": 6,
+          "packageName": "express"
+        }
+      ],
+      "recommendedCommands": ["npm install express@^4.18.2"],
+      "validationSteps": [
+        {
+          "title": "Verify express update",
+          "commands": ["npm list express"],
+          "expectedResult": "express@4.18.x listed"
+        }
+      ]
+    },
+    {
+      "id": "dep-lodash-security",
+      "category": "dependency",
+      "title": "Lodash has known security vulnerabilities",
+      "issue": "Lodash v4.17.10 has known security vulnerabilities",
+      "incompatibilityReason": "Multiple CVEs fixed in later versions",
+      "defaultTechnicalRecommendation": "Update lodash to v4.17.21 or later",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Update to Lodash 4.17.21",
+          "summary": "Latest v4 release with security fixes",
+          "targetVersionRange": "^4.17.21",
+          "rationale": "Fixes all known CVEs while maintaining API compatibility",
+          "tradeoffs": [],
+          "commands": ["npm install lodash@^4.17.21"]
+        }
+      ],
+      "affectedFiles": ["package.json"],
+      "evidence": [
+        {
+          "kind": "package",
+          "filePath": "package.json",
+          "summary": "lodash@4.17.10 declared in dependencies",
+          "line": 9,
+          "packageName": "lodash"
+        }
+      ],
+      "recommendedCommands": ["npm install lodash@^4.17.21"],
+      "validationSteps": [
+        {
+          "title": "Verify lodash update",
+          "commands": ["npm list lodash"],
+          "expectedResult": "lodash@4.17.21 listed"
+        }
+      ]
+    },
+    {
+      "id": "ci-node-version-pin",
+      "category": "ci",
+      "title": "GitHub Actions workflow pinned to Node 14",
+      "issue": "CI workflow uses Node 14 which needs updating",
+      "incompatibilityReason": "CI must match target runtime version",
+      "defaultTechnicalRecommendation": "Update node-version in GitHub Actions to 20",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Update to Node 20",
+          "summary": "Update GitHub Actions workflow to use Node 20",
+          "targetVersionRange": "20",
+          "rationale": "Matches target runtime version",
+          "tradeoffs": [],
+          "commands": []
+        }
+      ],
+      "affectedFiles": [".github/workflows/ci.yml"],
+      "evidence": [
+        {
+          "kind": "github-actions",
+          "filePath": ".github/workflows/ci.yml",
+          "summary": "node-version: 14",
+          "line": 9,
+          "configKey": "node-version"
+        }
+      ],
+      "recommendedCommands": [],
+      "validationSteps": [
+        {
+          "title": "Verify CI passes",
+          "commands": ["git push"],
+          "expectedResult": "CI workflow completes successfully"
+        }
+      ]
+    },
+    {
+      "id": "docker-node-version",
+      "category": "docker",
+      "title": "Dockerfile uses Node 14 base image",
+      "issue": "Dockerfile FROM uses node:14-alpine",
+      "incompatibilityReason": "Docker image must match target runtime",
+      "defaultTechnicalRecommendation": "Update Dockerfile to use node:20-alpine",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Update to node:20-alpine",
+          "summary": "Use Node 20 Alpine base image",
+          "targetVersionRange": "20",
+          "rationale": "Matches target runtime, maintains Alpine for small image size",
+          "tradeoffs": [],
+          "commands": []
+        }
+      ],
+      "affectedFiles": ["Dockerfile"],
+      "evidence": [
+        {
+          "kind": "docker",
+          "filePath": "Dockerfile",
+          "summary": "FROM node:14-alpine",
+          "line": 1,
+          "snippet": "FROM node:14-alpine"
+        }
+      ],
+      "recommendedCommands": [],
+      "validationSteps": [
+        {
+          "title": "Build Docker image",
+          "commands": ["docker build -t old-node-app ."],
+          "expectedResult": "Image builds successfully"
+        },
+        {
+          "title": "Run container",
+          "commands": ["docker run -p 3000:3000 old-node-app"],
+          "expectedResult": "Container starts and responds"
+        }
+      ]
+    }
+  ],
+  "bobDecision": {
+    "summary": "Staged migration path recommended: Node 14 → 16 → 18 → 20",
+    "selectedTargetPath": "staged-16-18-20",
+    "rationale": "Two critical deprecated dependencies (request, node-sass) require replacement before Node 20 migration. A staged approach allows testing at each LTS version and reduces risk.",
+    "prioritizedRisks": [
+      "request package is deprecated and has no Node 20 support",
+      "node-sass is deprecated and incompatible with Node 20",
+      "Multiple infrastructure files need coordinated updates",
+      "No package-lock.json increases dependency resolution risk"
+    ],
+    "chosenSolutions": [
+      "Replace request with axios for HTTP client functionality",
+      "Replace node-sass with sass (Dart Sass) for SCSS compilation",
+      "Update express to v4.18.2 for Node 20 compatibility",
+      "Update lodash to v4.17.21 to fix security vulnerabilities",
+      "Generate package-lock.json for reproducible builds"
+    ],
+    "tradeoffs": [
+      "Staged migration takes longer but reduces risk",
+      "Code changes required for request → axios migration",
+      "Dart Sass is slightly slower than node-sass but more maintainable"
+    ]
+  },
+  "bobExecutionPlan": [
+    {
+      "phase": "Preparation",
+      "order": 1,
+      "title": "Generate package-lock.json",
+      "actions": [
+        "Run npm install to generate package-lock.json",
+        "Commit package-lock.json to version control"
+      ],
+      "dependsOn": [],
+      "validation": ["Verify package-lock.json exists and is committed"]
+    },
+    {
+      "phase": "Dependency Updates",
+      "order": 2,
+      "title": "Replace deprecated request package",
+      "actions": [
+        "npm uninstall request",
+        "npm install axios@^1.6.0",
+        "Update server.js to use axios instead of request",
+        "Test HTTP functionality"
+      ],
+      "dependsOn": ["Generate package-lock.json"],
+      "validation": ["npm list axios shows v1.6.x", "Server starts and responds correctly"]
+    },
+    {
+      "phase": "Dependency Updates",
+      "order": 3,
+      "title": "Replace deprecated node-sass package",
+      "actions": [
+        "npm uninstall node-sass",
+        "npm install sass@^1.69.0",
+        "Update any build scripts if needed"
+      ],
+      "dependsOn": ["Generate package-lock.json"],
+      "validation": ["npm list sass shows v1.69.x"]
+    },
+    {
+      "phase": "Dependency Updates",
+      "order": 4,
+      "title": "Update express and lodash",
+      "actions": [
+        "npm install express@^4.18.2",
+        "npm install lodash@^4.17.21"
+      ],
+      "dependsOn": ["Generate package-lock.json"],
+      "validation": ["npm list shows updated versions", "npm audit shows no high/critical vulnerabilities"]
+    },
+    {
+      "phase": "Node 16 Migration",
+      "order": 5,
+      "title": "Update to Node 16",
+      "actions": [
+        "Update .nvmrc to 16.20.2",
+        "Update package.json engines.node to 16.x",
+        "Update Dockerfile FROM to node:16-alpine",
+        "Update .github/workflows/ci.yml node-version to 16",
+        "Test locally with Node 16"
+      ],
+      "dependsOn": ["Replace deprecated request package", "Replace deprecated node-sass package", "Update express and lodash"],
+      "validation": ["All tests pass on Node 16", "CI passes", "Docker image builds and runs"]
+    },
+    {
+      "phase": "Node 18 Migration",
+      "order": 6,
+      "title": "Update to Node 18",
+      "actions": [
+        "Update .nvmrc to 18.19.0",
+        "Update package.json engines.node to 18.x",
+        "Update Dockerfile FROM to node:18-alpine",
+        "Update .github/workflows/ci.yml node-version to 18",
+        "Test locally with Node 18"
+      ],
+      "dependsOn": ["Update to Node 16"],
+      "validation": ["All tests pass on Node 18", "CI passes", "Docker image builds and runs"]
+    },
+    {
+      "phase": "Node 20 Migration",
+      "order": 7,
+      "title": "Final migration to Node 20",
+      "actions": [
+        "Update .nvmrc to 20.11.0",
+        "Update package.json engines.node to 20.x",
+        "Update Dockerfile FROM to node:20-alpine",
+        "Update .github/workflows/ci.yml node-version to 20",
+        "Test locally with Node 20",
+        "Run full test suite",
+        "Deploy to staging environment"
+      ],
+      "dependsOn": ["Update to Node 18"],
+      "validation": ["All tests pass on Node 20", "CI passes", "Docker image builds and runs", "Staging deployment successful"]
+    }
+  ],
+  "validationChecklist": [
+    {
+      "title": "Verify all dependencies are Node 20 compatible",
+      "commands": ["npm list", "npm audit"],
+      "expectedResult": "No compatibility warnings, no high/critical vulnerabilities"
+    },
+    {
+      "title": "Run application locally on Node 20",
+      "commands": ["nvm use 20", "npm install", "npm start"],
+      "expectedResult": "Application starts without errors"
+    },
+    {
+      "title": "Verify CI pipeline passes",
+      "commands": ["git push"],
+      "expectedResult": "GitHub Actions workflow completes successfully"
+    },
+    {
+      "title": "Build and test Docker image",
+      "commands": ["docker build -t old-node-app .", "docker run -p 3000:3000 old-node-app"],
+      "expectedResult": "Image builds and container runs successfully"
+    },
+    {
+      "title": "Test HTTP endpoints",
+      "commands": ["curl http://localhost:3000"],
+      "expectedResult": "Server responds with expected output"
+    }
+  ]
+}
