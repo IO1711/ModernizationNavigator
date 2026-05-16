@@ -24,3 +24,6 @@ npm-debug.log*
 # local verification artifacts
 tmp/
 dev2_impl_process.md
+
+# local-only dev tests (not part of the project test suite)
+tests-local/
