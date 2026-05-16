@@ -2,6 +2,12 @@
   "latestReportPath": "reports/latest/report.json",
   "history": [
     {
+      "reportId": "ibm-hackathon-20260516T114128Z",
+      "createdAt": "2026-05-16T11:41:28.000Z",
+      "reportPath": "reports/history/ibm-hackathon-20260516T114128Z.json",
+      "requestedTargetNodeVersion": "20"
+    },
+    {
       "reportId": "modernization-20260516T110511Z",
       "createdAt": "2026-05-16T11:05:11.735Z",
       "reportPath": "reports/history/modernization-20260516T110511Z.json",

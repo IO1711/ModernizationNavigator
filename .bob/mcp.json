@@ -11,7 +11,14 @@
         "inspect_source_compatibility",
         "compare_target_paths",
         "save_modernization_report",
-        "open_report_viewer"
+        "open_report_viewer",
+        "discover_project_stack",
+        "collect_environment_evidence",
+        "inspect_framework_dependencies",
+        "inspect_platform_config",
+        "inspect_source_risks",
+        "compare_upgrade_paths",
+        "save_modernization_report_v2"
       ]
     }
   }

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { TOOL_NAMES } from '../constants/tool-names';
+import { TOOL_NAMES_V2 } from '../constants/tool-names-v2';
 
 const safePathSegmentPattern = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))(?!.*\/\/).+/;
 const reportIdPattern =
@@ -8,6 +9,9 @@ const reportIdPattern =
 const relativeReportPathPattern =
   /^reports\/(?:latest\/report|history\/[A-Za-z0-9-]+)\.json$/;
 const historyReportPathPattern = /^reports\/history\/[A-Za-z0-9-]+\.json$/;
+const relativeReportPathV2Pattern =
+  /^reports\/(?:latest\/report-v2|history\/v2\/[A-Za-z0-9-]+)\.json$/;
+const historyReportPathV2Pattern = /^reports\/history\/v2\/[A-Za-z0-9-]+\.json$/;
 
 export const isoTimestampSchema = z.string().datetime({ offset: true });
 
@@ -38,9 +42,19 @@ export const reportPathSchema = z.string().regex(relativeReportPathPattern, {
 export const reportIndexPathSchema = z.literal('reports/index.json');
 
 export const targetNodeVersionSchema = nonEmptyStringSchema;
+export const targetVersionSchema = nonEmptyStringSchema;
 
 export const packageManagerSchema = z.enum(['npm', 'pnpm', 'yarn']);
 
 export const workspaceTypeSchema = z.enum(['single', 'monorepo']);
 
 export const toolNameSchema = z.enum(TOOL_NAMES);
+export const historyReportPathV2Schema = z.string().regex(historyReportPathV2Pattern, {
+  message: 'History report paths must live under reports/history/v2/*.json.'
+});
+export const reportPathV2Schema = z.string().regex(relativeReportPathV2Pattern, {
+  message:
+    'Report paths must resolve to reports/latest/report-v2.json or reports/history/v2/<reportId>.json.'
+});
+export const reportIndexPathV2Schema = z.literal('reports/index-v2.json');
+export const toolNameV2Schema = z.enum(TOOL_NAMES_V2);

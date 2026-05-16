@@ -1,9 +1,12 @@
 {
   "name": "@modernization-navigator/knowledge-base",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "data"]
+  "files": ["dist", "data"],
+  "publishConfig": {
+    "access": "public"
+  }
 }

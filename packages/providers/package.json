@@ -1,11 +1,15 @@
 {
   "name": "@modernization-navigator/providers",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@modernization-navigator/shared": "*"
+    "@modernization-navigator/shared": "0.1.0"
   }
 }

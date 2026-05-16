@@ -1,0 +1,6 @@
+{
+  "repoRoot": "/workspace/demo-react-app",
+  "subdirectory": "apps/web",
+  "targetVersion": "20",
+  "offline": false
+}

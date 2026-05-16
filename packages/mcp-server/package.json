@@ -1,19 +1,24 @@
 {
   "name": "@modernization-navigator/mcp-server",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "@modernization-navigator/shared": "*",
-    "@modernization-navigator/analysis-engine": "*",
-    "@modernization-navigator/viewer-server": "*",
+    "@modernization-navigator/shared": "0.1.0",
+    "@modernization-navigator/analysis-engine": "0.1.0",
+    "@modernization-navigator/viewer-server": "0.1.0",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.5"
   },
   "bin": {
-    "modernization-navigator-mcp": "dist/index.js"
+    "modernization-navigator-mcp": "dist/index.js",
+    "modernization-navigator-mcp-setup": "dist/index.js"
   }
 }

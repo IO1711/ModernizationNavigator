@@ -22,12 +22,26 @@ This repository now contains the starter scaffold from `technical_plan.md` so th
 
 ```bash
 npm install
+npm run build
 npm run viewer:demo-sync
 npm run typecheck
 ```
+
+## Install Once, Use Anywhere
+
+After the workspace packages are published, the MCP server can be installed once as a standalone tool and then wired into any repo that needs modernization analysis. That keeps it independent from whether the target repo uses Node, Python, Spring, Flutter, or SwiftUI.
+
+```bash
+npm install -g @modernization-navigator/mcp-server
+modernization-navigator-mcp setup --repo /path/to/your-repo
+```
+
+That setup command writes `/path/to/your-repo/.bob/mcp.json` and points it at the globally installed `modernization-navigator-mcp` binary instead of a repo-local `dist/` file.
+
+For contributors working inside this monorepo, the checked-in [.bob/mcp.json](/Users/bilolbekrayimov/games/IBM_hackathon/.bob/mcp.json) still points at the local build output so local development stays simple.
 
 ## Notes
 
 - Existing root planning artifacts such as `technical_plan.md`, `technical_plan.html`, and the root `index.html` were left untouched.
 - The scaffold favors stable contracts and starter implementations over deep feature completeness so parallel development can start immediately.
-- I attempted `npm install` as part of verification on May 16, 2026, and the local client returned `EUNSUPPORTEDPROTOCOL` for the required `workspace:*` package references. The manifests were left aligned to the technical plan, so re-run install/typecheck in the team’s target Node/npm environment before expecting a full green build.
+- Publish the workspace packages in dependency order when cutting a release: `shared`, `knowledge-base`, `providers`, `analysis-engine`, `viewer-server`, then `mcp-server`.

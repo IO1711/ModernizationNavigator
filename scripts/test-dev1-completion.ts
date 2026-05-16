@@ -3,8 +3,8 @@
  * Test script to validate Dev 1 completion criteria from the technical plan.
  * 
  * This validates:
- * 1. .bob/mcp.json contains modernization-navigator server with all 8 tools
- * 2. MCP server registers exactly 8 tools
+ * 1. .bob/mcp.json contains modernization-navigator server with all registered tools
+ * 2. MCP server registers the expected tool set
  * 3. discover_repo_scope returns valid schema
  * 4. save_modernization_report writes correct files
  * 5. save_modernization_report returns correct paths
@@ -16,7 +16,10 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { TOOL_NAMES, TOOL_NAMES_V2 } from '../packages/shared/src';
+
 const PROJECT_ROOT = path.resolve(__dirname, '..');
+const EXPECTED_TOOL_NAMES = [...TOOL_NAMES, ...TOOL_NAMES_V2];
 
 interface TestResult {
   name: string;
@@ -120,26 +123,15 @@ async function test1_McpJsonConfiguration(): Promise<void> {
       return;
     }
 
-    const expectedTools = [
-      'discover_repo_scope',
-      'collect_runtime_evidence',
-      'inspect_dependency_blockers',
-      'inspect_ops_runtime',
-      'inspect_source_compatibility',
-      'compare_target_paths',
-      'save_modernization_report',
-      'open_report_viewer'
-    ];
-
     const alwaysAllow = server.alwaysAllow || [];
-    const hasAllTools = expectedTools.every(tool => alwaysAllow.includes(tool));
+    const hasAllTools = EXPECTED_TOOL_NAMES.every(tool => alwaysAllow.includes(tool));
 
     if (!hasAllTools) {
-      addResult('Test 1: .bob/mcp.json', false, `Missing tools in alwaysAllow. Expected: ${expectedTools.join(', ')}`);
+      addResult('Test 1: .bob/mcp.json', false, `Missing tools in alwaysAllow. Expected: ${EXPECTED_TOOL_NAMES.join(', ')}`);
       return;
     }
 
-    addResult('Test 1: .bob/mcp.json', true, 'Contains modernization-navigator server with all 8 tools');
+    addResult('Test 1: .bob/mcp.json', true, 'Contains modernization-navigator server with the full tool set');
   } catch (error) {
     addResult('Test 1: .bob/mcp.json', false, `Error: ${error}`);
   }
@@ -154,29 +146,18 @@ async function test2_McpServerRegistration(): Promise<void> {
     const tools = response.result?.tools || [];
     const toolNames = tools.map(t => t.name);
 
-    const expectedTools = [
-      'discover_repo_scope',
-      'collect_runtime_evidence',
-      'inspect_dependency_blockers',
-      'inspect_ops_runtime',
-      'inspect_source_compatibility',
-      'compare_target_paths',
-      'save_modernization_report',
-      'open_report_viewer'
-    ];
-
-    if (toolNames.length !== 8) {
-      addResult('Test 2: MCP Server Registration', false, `Expected 8 tools, got ${toolNames.length}`);
+    if (toolNames.length !== EXPECTED_TOOL_NAMES.length) {
+      addResult('Test 2: MCP Server Registration', false, `Expected ${EXPECTED_TOOL_NAMES.length} tools, got ${toolNames.length}`);
       return;
     }
 
-    const hasAllTools = expectedTools.every(tool => toolNames.includes(tool));
+    const hasAllTools = EXPECTED_TOOL_NAMES.every(tool => toolNames.includes(tool));
     if (!hasAllTools) {
-      addResult('Test 2: MCP Server Registration', false, `Missing tools: ${expectedTools.filter(t => !toolNames.includes(t)).join(', ')}`);
+      addResult('Test 2: MCP Server Registration', false, `Missing tools: ${EXPECTED_TOOL_NAMES.filter(t => !toolNames.includes(t)).join(', ')}`);
       return;
     }
 
-    addResult('Test 2: MCP Server Registration', true, 'Registers exactly 8 tools');
+    addResult('Test 2: MCP Server Registration', true, 'Registers the expected v1 + v2 tool set');
   } catch (error) {
     addResult('Test 2: MCP Server Registration', false, `Error: ${error}`);
   }

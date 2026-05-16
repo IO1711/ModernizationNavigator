@@ -1,0 +1,174 @@
+{
+  "reportVersion": "v2",
+  "reportId": "react-20260516T120000Z",
+  "createdAt": "2026-05-16T12:00:00.000Z",
+  "repoRoot": "/workspace/demo-react-app",
+  "subdirectory": "apps/web",
+  "stackProfile": {
+    "ecosystem": "node",
+    "framework": "react",
+    "language": "typescript",
+    "runtimeName": "node",
+    "dependencyManager": "pnpm",
+    "buildSystem": "vite"
+  },
+  "projectDescriptors": [
+    {
+      "rootPath": "apps/web",
+      "ecosystem": "node",
+      "framework": "react",
+      "language": "typescript",
+      "runtimeName": "node",
+      "dependencyManager": "pnpm",
+      "buildSystem": "vite",
+      "confidence": 0.97,
+      "markers": [
+        "dependency:@vitejs/plugin-react",
+        "dependency:react",
+        "dependency:react-dom",
+        "dependency:vite"
+      ]
+    }
+  ],
+  "requestedTargetVersion": "20",
+  "evaluatedTargetVersions": [
+    "18",
+    "20"
+  ],
+  "offlineMode": false,
+  "externalDataStatus": {
+    "sources": [
+      {
+        "source": "npmRegistry",
+        "status": "used"
+      },
+      {
+        "source": "osv",
+        "status": "used"
+      }
+    ],
+    "notes": [
+      "Fixture report for v2 contract validation."
+    ]
+  },
+  "toolTrace": [
+    {
+      "toolName": "discover_project_stack",
+      "purpose": "Detect the React app boundary",
+      "status": "success",
+      "startedAt": "2026-05-16T12:00:00.000Z",
+      "finishedAt": "2026-05-16T12:00:01.000Z",
+      "resultSummary": "Detected one React/Vite project."
+    },
+    {
+      "toolName": "collect_environment_evidence",
+      "purpose": "Collect framework-aware environment evidence",
+      "status": "success",
+      "startedAt": "2026-05-16T12:00:01.000Z",
+      "finishedAt": "2026-05-16T12:00:02.000Z",
+      "resultSummary": "Found Node runtime and Vite build markers."
+    },
+    {
+      "toolName": "inspect_framework_dependencies",
+      "purpose": "Inspect React and Node dependency compatibility",
+      "status": "success",
+      "startedAt": "2026-05-16T12:00:02.000Z",
+      "finishedAt": "2026-05-16T12:00:03.000Z",
+      "resultSummary": "No React-specific dependency blockers detected."
+    }
+  ],
+  "environmentEvidence": [
+    {
+      "source": "package.json",
+      "filePath": "apps/web/package.json",
+      "value": "react",
+      "kind": "framework"
+    },
+    {
+      "source": "package.json",
+      "filePath": "apps/web/package.json",
+      "value": "vite",
+      "kind": "build-system"
+    },
+    {
+      "source": "package-manager",
+      "filePath": "apps/web/package.json",
+      "value": "pnpm",
+      "kind": "dependency-manager"
+    },
+    {
+      "source": "package.json",
+      "filePath": "apps/web/package.json",
+      "value": ">=18",
+      "kind": "runtime"
+    }
+  ],
+  "issues": [],
+  "bobDecision": {
+    "summary": "Proceed with a direct Node 20 upgrade and validate the React build on the Vite toolchain.",
+    "selectedTargetPath": "Direct Node 20 + React validation",
+    "rationale": "The React app is clearly identified, its build system is current, and no framework-specific blockers were found in the baseline fixture.",
+    "prioritizedRisks": [
+      "Build output must still pass after the runtime cutover",
+      "Client tooling and CI should stay aligned on the same Node major"
+    ],
+    "chosenSolutions": [
+      "Keep Vite as the single build path",
+      "Validate install, test, and build on Node 20"
+    ],
+    "tradeoffs": [
+      "A direct path is faster but depends on complete build validation",
+      "No staged runtime buffer is included in this fixture scenario"
+    ]
+  },
+  "bobExecutionPlan": [
+    {
+      "phase": "Discovery",
+      "order": 1,
+      "title": "Confirm the React/Vite package boundary",
+      "actions": [
+        "Confirm the app root at apps/web",
+        "Record React and Vite markers in the saved report"
+      ],
+      "dependsOn": [],
+      "validation": [
+        "The project descriptor reports framework react",
+        "The stack profile reports buildSystem vite"
+      ]
+    },
+    {
+      "phase": "Runtime upgrade",
+      "order": 2,
+      "title": "Validate the React app on Node 20",
+      "actions": [
+        "Install dependencies on Node 20",
+        "Run tests",
+        "Run the production build"
+      ],
+      "dependsOn": [
+        "Confirm the React/Vite package boundary"
+      ],
+      "validation": [
+        "Install succeeds on Node 20",
+        "The React app builds successfully with Vite"
+      ]
+    }
+  ],
+  "validationChecklist": [
+    {
+      "title": "Install dependencies",
+      "commands": [
+        "pnpm install"
+      ],
+      "expectedResult": "Dependencies install without React or bundler errors."
+    },
+    {
+      "title": "Run tests and build",
+      "commands": [
+        "pnpm test",
+        "pnpm build"
+      ],
+      "expectedResult": "The React app passes tests and completes a production build on the selected runtime."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "react-scripts-legacy-major",
+    "title": "react-scripts is pinned to a legacy major",
+    "match": {
+      "packageName": "react-scripts",
+      "maxRecommendedMajor": 4
+    },
+    "incompatibilityReason": "Older react-scripts releases pull in aging Webpack and Babel stacks that make runtime and toolchain upgrades harder to validate.",
+    "defaultTechnicalRecommendation": "Upgrade react-scripts to the latest supported major or move the app to a maintained React build stack before the final runtime cutover.",
+    "alternativeSolutions": [],
+    "evidenceHints": [
+      "dependencies.react-scripts",
+      "devDependencies.react-scripts",
+      "package.json scripts"
+    ]
+  }
+]

@@ -1,9 +1,27 @@
 import type { ZodError, ZodType } from 'zod';
 
+import { reportManifestV2Schema } from '../schemas/manifest-v2';
 import { reportManifestSchema } from '../schemas/manifest';
+import { reportV2Schema } from '../schemas/report-v2';
 import { reportSchema } from '../schemas/report';
+import { toolInputSchemasV2, toolResultSchemasV2 } from '../schemas/tool-results-v2';
 import { toolInputSchemas, toolResultSchemas } from '../schemas/tool-results';
+import type { ReportManifestV2, ReportV2 } from '../types/report-v2';
 import type { Report, ReportManifest } from '../types/report';
+import type {
+  BaseToolInputV2,
+  CollectEnvironmentEvidenceResult,
+  CompareUpgradePathsResult,
+  DiscoverProjectStackResult,
+  InspectFrameworkDependenciesResult,
+  InspectPlatformConfigResult,
+  InspectSourceRisksResult,
+  SaveModernizationReportV2Input,
+  SaveModernizationReportV2Result,
+  ToolInputByNameV2,
+  ToolNameV2,
+  ToolResultByNameV2
+} from '../types/tools-v2';
 import type {
   BaseToolInput,
   CollectRuntimeEvidenceResult,
@@ -67,6 +85,14 @@ export function validateReport(payload: unknown): ValidationResult<Report> {
 
 export function validateManifest(payload: unknown): ValidationResult<ReportManifest> {
   return safeValidate(reportManifestSchema, payload);
+}
+
+export function validateReportV2(payload: unknown): ValidationResult<ReportV2> {
+  return safeValidate(reportV2Schema, payload);
+}
+
+export function validateManifestV2(payload: unknown): ValidationResult<ReportManifestV2> {
+  return safeValidate(reportManifestV2Schema, payload);
 }
 
 export function validateToolInput(
@@ -179,6 +205,14 @@ export function parseManifest(payload: unknown): ReportManifest {
   return reportManifestSchema.parse(payload);
 }
 
+export function parseReportV2(payload: unknown): ReportV2 {
+  return reportV2Schema.parse(payload);
+}
+
+export function parseManifestV2(payload: unknown): ReportManifestV2 {
+  return reportManifestV2Schema.parse(payload);
+}
+
 export function parseToolInput(
   toolName: 'discover_repo_scope',
   payload: unknown
@@ -255,6 +289,170 @@ export function parseToolResult(
   payload: unknown
 ): ToolResultByName[ToolName] {
   return toolResultSchemas[toolName].parse(payload);
+}
+
+export function validateToolInputV2(
+  toolName: 'discover_project_stack',
+  payload: unknown
+): ValidationResult<BaseToolInputV2>;
+export function validateToolInputV2(
+  toolName: 'collect_environment_evidence',
+  payload: unknown
+): ValidationResult<BaseToolInputV2>;
+export function validateToolInputV2(
+  toolName: 'inspect_framework_dependencies',
+  payload: unknown
+): ValidationResult<BaseToolInputV2>;
+export function validateToolInputV2(
+  toolName: 'inspect_platform_config',
+  payload: unknown
+): ValidationResult<BaseToolInputV2>;
+export function validateToolInputV2(
+  toolName: 'inspect_source_risks',
+  payload: unknown
+): ValidationResult<BaseToolInputV2>;
+export function validateToolInputV2(
+  toolName: 'compare_upgrade_paths',
+  payload: unknown
+): ValidationResult<BaseToolInputV2>;
+export function validateToolInputV2(
+  toolName: 'save_modernization_report_v2',
+  payload: unknown
+): ValidationResult<SaveModernizationReportV2Input>;
+export function validateToolInputV2(
+  toolName: ToolNameV2,
+  payload: unknown
+): ValidationResult<ToolInputByNameV2[ToolNameV2]> {
+  const result = toolInputSchemasV2[toolName].safeParse(payload);
+
+  if (result.success) {
+    return {
+      success: true,
+      data: result.data
+    };
+  }
+
+  return {
+    success: false,
+    errors: toValidationIssues(result.error)
+  };
+}
+
+export function validateToolResultV2(
+  toolName: 'discover_project_stack',
+  payload: unknown
+): ValidationResult<DiscoverProjectStackResult>;
+export function validateToolResultV2(
+  toolName: 'collect_environment_evidence',
+  payload: unknown
+): ValidationResult<CollectEnvironmentEvidenceResult>;
+export function validateToolResultV2(
+  toolName: 'inspect_framework_dependencies',
+  payload: unknown
+): ValidationResult<InspectFrameworkDependenciesResult>;
+export function validateToolResultV2(
+  toolName: 'inspect_platform_config',
+  payload: unknown
+): ValidationResult<InspectPlatformConfigResult>;
+export function validateToolResultV2(
+  toolName: 'inspect_source_risks',
+  payload: unknown
+): ValidationResult<InspectSourceRisksResult>;
+export function validateToolResultV2(
+  toolName: 'compare_upgrade_paths',
+  payload: unknown
+): ValidationResult<CompareUpgradePathsResult>;
+export function validateToolResultV2(
+  toolName: 'save_modernization_report_v2',
+  payload: unknown
+): ValidationResult<SaveModernizationReportV2Result>;
+export function validateToolResultV2(
+  toolName: ToolNameV2,
+  payload: unknown
+): ValidationResult<ToolResultByNameV2[ToolNameV2]> {
+  const result = toolResultSchemasV2[toolName].safeParse(payload);
+
+  if (result.success) {
+    return {
+      success: true,
+      data: result.data
+    };
+  }
+
+  return {
+    success: false,
+    errors: toValidationIssues(result.error)
+  };
+}
+
+export function parseToolInputV2(
+  toolName: 'discover_project_stack',
+  payload: unknown
+): BaseToolInputV2;
+export function parseToolInputV2(
+  toolName: 'collect_environment_evidence',
+  payload: unknown
+): BaseToolInputV2;
+export function parseToolInputV2(
+  toolName: 'inspect_framework_dependencies',
+  payload: unknown
+): BaseToolInputV2;
+export function parseToolInputV2(
+  toolName: 'inspect_platform_config',
+  payload: unknown
+): BaseToolInputV2;
+export function parseToolInputV2(
+  toolName: 'inspect_source_risks',
+  payload: unknown
+): BaseToolInputV2;
+export function parseToolInputV2(
+  toolName: 'compare_upgrade_paths',
+  payload: unknown
+): BaseToolInputV2;
+export function parseToolInputV2(
+  toolName: 'save_modernization_report_v2',
+  payload: unknown
+): SaveModernizationReportV2Input;
+export function parseToolInputV2(
+  toolName: ToolNameV2,
+  payload: unknown
+): ToolInputByNameV2[ToolNameV2] {
+  return toolInputSchemasV2[toolName].parse(payload);
+}
+
+export function parseToolResultV2(
+  toolName: 'discover_project_stack',
+  payload: unknown
+): DiscoverProjectStackResult;
+export function parseToolResultV2(
+  toolName: 'collect_environment_evidence',
+  payload: unknown
+): CollectEnvironmentEvidenceResult;
+export function parseToolResultV2(
+  toolName: 'inspect_framework_dependencies',
+  payload: unknown
+): InspectFrameworkDependenciesResult;
+export function parseToolResultV2(
+  toolName: 'inspect_platform_config',
+  payload: unknown
+): InspectPlatformConfigResult;
+export function parseToolResultV2(
+  toolName: 'inspect_source_risks',
+  payload: unknown
+): InspectSourceRisksResult;
+export function parseToolResultV2(
+  toolName: 'compare_upgrade_paths',
+  payload: unknown
+): CompareUpgradePathsResult;
+export function parseToolResultV2(
+  toolName: 'save_modernization_report_v2',
+  payload: unknown
+): SaveModernizationReportV2Result;
+export function parseToolResultV2(
+  toolName: ToolNameV2,
+  payload: unknown
+): ToolResultByNameV2[ToolNameV2] {
+  return toolResultSchemasV2[toolName].parse(payload);
 }
 
 export function formatValidationErrors(result: { errors: ValidationIssue[] }): string {
