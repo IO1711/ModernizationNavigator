@@ -6,7 +6,32 @@
     },
     "incompatibilityReason": "Node.js versions below 18 increase upgrade risk for modern tooling and hosted runtimes.",
     "defaultTechnicalRecommendation": "Upgrade to an intermediate LTS before attempting the final target when dependency blockers remain.",
-    "alternativeSolutions": [],
+    "alternativeSolutions": [
+      {
+        "rank": 1,
+        "title": "Stabilize on Node 18 first",
+        "summary": "Reduce runtime churn before the final cutover.",
+        "targetVersionRange": "18.x",
+        "rationale": "Node 18 is a smaller compatibility step for repos still declaring Node 16-era tooling.",
+        "tradeoffs": ["Two rollout phases", "Extra validation pass"],
+        "commands": ["npm test", "npm run build"]
+      }
+    ],
     "evidenceHints": ["package.json engines", ".nvmrc", "Docker base image tags"]
+  },
+  {
+    "id": "node-pre-lts-review",
+    "match": {
+      "currentNodeRange": "<20"
+    },
+    "incompatibilityReason": "Older runtime declarations can hide CI, Docker, and dependency drift when the requested target is a newer LTS.",
+    "defaultTechnicalRecommendation": "Reconcile runtime declarations across manifests and operational config before the final upgrade.",
+    "alternativeSolutions": [],
+    "evidenceHints": [
+      "package.json engines",
+      ".node-version",
+      ".github/workflows/*.yml",
+      "deployment config"
+    ]
   }
 ]

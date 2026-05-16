@@ -8,5 +8,15 @@
     "defaultTechnicalRecommendation": "Update workflow node-version settings in the same phase as the runtime upgrade.",
     "alternativeSolutions": [],
     "evidenceHints": [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+  },
+  {
+    "id": "gha-version-file-review",
+    "match": {
+      "workflowPattern": "node-version-file"
+    },
+    "incompatibilityReason": "GitHub Actions can follow a version file that no longer matches the repo's intended runtime declaration.",
+    "defaultTechnicalRecommendation": "Confirm that the workflow version file points at the same runtime version used for the migration.",
+    "alternativeSolutions": [],
+    "evidenceHints": [".github/workflows/*.yml", ".nvmrc", ".node-version"]
   }
 ]

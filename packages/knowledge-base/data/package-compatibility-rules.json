@@ -2,11 +2,43 @@
   {
     "id": "native-addon-review",
     "match": {
-      "packagePatterns": ["node-gyp", "nan", "bindings"]
+      "packagePatterns": [
+        "bindings",
+        "nan",
+        "node-gyp",
+        "node-pre-gyp",
+        "prebuild-install"
+      ],
+      "scriptPatterns": [
+        "node-gyp",
+        "prebuild-install",
+        "node-pre-gyp"
+      ]
     },
     "incompatibilityReason": "Native addon toolchains often need extra verification during Node major upgrades.",
     "defaultTechnicalRecommendation": "Validate native addon support on the requested target version before taking a direct path.",
-    "alternativeSolutions": [],
+    "alternativeSolutions": [
+      {
+        "rank": 1,
+        "title": "Use a staged runtime path",
+        "summary": "Separate runtime changes from native dependency validation.",
+        "targetVersionRange": "18.x",
+        "rationale": "A staged rollout narrows failure scope while native addons are rebuilt or upgraded.",
+        "tradeoffs": ["Longer migration timeline", "Two rounds of testing"],
+        "commands": ["npm test", "npm run build"]
+      }
+    ],
     "evidenceHints": ["dependencies", "optionalDependencies", "install scripts"]
+  },
+  {
+    "id": "legacy-test-runner-review",
+    "match": {
+      "packagePatterns": ["jest-jasmine2", "ts-node-dev"],
+      "scriptPatterns": ["ts-node-dev", "jest --runInBand"]
+    },
+    "incompatibilityReason": "Legacy development and test runners can become upgrade friction points when a repo jumps multiple Node majors.",
+    "defaultTechnicalRecommendation": "Verify the runner version against the target runtime and upgrade within the same package ecosystem if support is unclear.",
+    "alternativeSolutions": [],
+    "evidenceHints": ["devDependencies", "package.json scripts"]
   }
 ]

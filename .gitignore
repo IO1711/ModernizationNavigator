@@ -1,9 +1,15 @@
 # dependencies
 node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+pnpm-workspace.yaml
 
 # build output
+dist/
 **/dist/
+*.tsbuildinfo
 **/*.tsbuildinfo
+coverage/
 
 # logs
 .bob/.bob-errors/
@@ -14,3 +20,7 @@ npm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+
+# local verification artifacts
+tmp/
+dev2_impl_process.md

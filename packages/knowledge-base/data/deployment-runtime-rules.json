@@ -2,11 +2,27 @@
   {
     "id": "deployment-runtime-review",
     "match": {
-      "deploymentFiles": ["vercel.json", "netlify.toml", "render.yaml", "fly.toml"]
+      "deploymentFiles": [
+        "vercel.json",
+        "netlify.toml",
+        "render.yaml",
+        "render.yml",
+        "fly.toml"
+      ]
     },
     "incompatibilityReason": "Deployment platform runtime settings can lag behind the repo's declared target version.",
     "defaultTechnicalRecommendation": "Review platform-specific runtime declarations during the rollout plan.",
     "alternativeSolutions": [],
     "evidenceHints": ["deployment config", "Dockerfile", "build scripts"]
+  },
+  {
+    "id": "deployment-runtime-env-review",
+    "match": {
+      "deploymentFiles": ["netlify.toml", "fly.toml", "render.yaml", "render.yml"]
+    },
+    "incompatibilityReason": "Deployment environment variables can pin an older Node runtime even after manifest updates are complete.",
+    "defaultTechnicalRecommendation": "Update NODE_VERSION-style deployment environment variables together with the runtime declaration cutover.",
+    "alternativeSolutions": [],
+    "evidenceHints": ["NODE_VERSION", "runtime", "build image configuration"]
   }
 ]

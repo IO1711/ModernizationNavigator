@@ -1,71 +1,80 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import type { RuntimeEvidenceEntry } from '@modernization-navigator/shared';
+import YAML from 'yaml';
 
-function resolveAnalysisRoot(repoRoot: string, subdirectory?: string): string {
-  return subdirectory ? path.resolve(repoRoot, subdirectory) : repoRoot;
-}
-
-async function readTextIfExists(filePath: string): Promise<string | null> {
-  try {
-    return await fs.readFile(filePath, 'utf8');
-  } catch {
-    return null;
-  }
-}
-
-async function walkFiles(
-  root: string,
-  matcher: (filePath: string) => boolean,
-  maxDepth = 4,
-  currentDepth = 0
-): Promise<string[]> {
-  if (currentDepth > maxDepth) {
-    return [];
-  }
-
-  let entries: Awaited<ReturnType<typeof fs.readdir>>;
-
-  try {
-    entries = await fs.readdir(root, { withFileTypes: true });
-  } catch {
-    return [];
-  }
-
-  const files: string[] = [];
-
-  for (const entry of entries) {
-    if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist') {
-      continue;
-    }
-
-    const fullPath = path.join(root, entry.name);
-
-    if (entry.isDirectory()) {
-      files.push(
-        ...(await walkFiles(fullPath, matcher, maxDepth, currentDepth + 1))
-      );
-      continue;
-    }
-
-    if (matcher(fullPath)) {
-      files.push(fullPath);
-    }
-  }
-
-  return files;
-}
-
-function toRelative(repoRoot: string, filePath: string): string {
-  return path.relative(repoRoot, filePath) || '.';
-}
+import {
+  readJsonIfExists,
+  readTextIfExists,
+  resolveAnalysisRoot,
+  toRelative,
+  walkFiles
+} from '../internal/file-utils';
 
 function findVersionLine(content: string): string {
   return content
     .split(/\r?\n/)
     .map((line) => line.trim())
     .find((line) => line.length > 0) ?? '';
+}
+
+function pushEvidenceEntry(
+  entries: RuntimeEvidenceEntry[],
+  entry: RuntimeEvidenceEntry
+): void {
+  entries.push({
+    ...entry,
+    filePath: entry.filePath,
+    source: entry.source,
+    value: entry.value.trim()
+  });
+}
+
+function collectNestedValues(
+  value: unknown,
+  matcher: (key: string, scalarValue: string) => boolean,
+  pathSegments: string[] = []
+): Array<{ keyPath: string; value: string }> {
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) =>
+      collectNestedValues(item, matcher, [...pathSegments, String(index)])
+    );
+  }
+
+  if (!value || typeof value !== 'object') {
+    return [];
+  }
+
+  return Object.entries(value).flatMap(([key, nestedValue]) => {
+    const nextPathSegments = [...pathSegments, key];
+
+    if (
+      (typeof nestedValue === 'string' || typeof nestedValue === 'number') &&
+      matcher(key, String(nestedValue))
+    ) {
+      return [
+        {
+          keyPath: nextPathSegments.join('.'),
+          value: String(nestedValue)
+        }
+      ];
+    }
+
+    return collectNestedValues(nestedValue, matcher, nextPathSegments);
+  });
+}
+
+function sortRuntimeEvidence(
+  entries: RuntimeEvidenceEntry[]
+): RuntimeEvidenceEntry[] {
+  return [...entries].sort((left, right) => {
+    return (
+      left.filePath.localeCompare(right.filePath) ||
+      left.kind.localeCompare(right.kind) ||
+      left.source.localeCompare(right.source) ||
+      left.value.localeCompare(right.value)
+    );
+  });
 }
 
 export async function collectRuntimeEvidenceEntries(
@@ -75,38 +84,38 @@ export async function collectRuntimeEvidenceEntries(
   const analysisRoot = resolveAnalysisRoot(repoRoot, subdirectory);
   const evidence: RuntimeEvidenceEntry[] = [];
   const packageJsonPath = path.join(analysisRoot, 'package.json');
-  const packageJsonText = await readTextIfExists(packageJsonPath);
+  const packageJson = await readJsonIfExists<{
+    engines?: { node?: string };
+    scripts?: Record<string, string>;
+  }>(packageJsonPath);
 
-  if (packageJsonText) {
-    try {
-      const packageJson = JSON.parse(packageJsonText) as {
-        engines?: { node?: string };
-        scripts?: Record<string, string>;
-      };
+  if (packageJson) {
+    if (packageJson.engines?.node) {
+      pushEvidenceEntry(evidence, {
+        source: 'package.json',
+        filePath: toRelative(repoRoot, packageJsonPath),
+        value: packageJson.engines.node,
+        kind: 'engines'
+      });
+    }
 
-      if (packageJson.engines?.node) {
-        evidence.push({
-          source: 'package.json',
-          filePath: toRelative(repoRoot, packageJsonPath),
-          value: packageJson.engines.node,
-          kind: 'engines'
-        });
+    for (const [scriptName, scriptValue] of Object.entries(
+      packageJson.scripts ?? {}
+    ).sort(([leftName], [rightName]) => leftName.localeCompare(rightName))) {
+      if (
+        !/\b(node|nvm|volta)\b|NODE_(?:OPTIONS|VERSION)|\.nvmrc|\.node-version/i.test(
+          scriptValue
+        )
+      ) {
+        continue;
       }
 
-      for (const [scriptName, scriptValue] of Object.entries(packageJson.scripts ?? {})) {
-        if (!/(^|[\s=:])(node|nvm|NODE_OPTIONS)([\s=:]|$)/.test(scriptValue)) {
-          continue;
-        }
-
-        evidence.push({
-          source: `package.json:scripts.${scriptName}`,
-          filePath: toRelative(repoRoot, packageJsonPath),
-          value: scriptValue,
-          kind: 'script'
-        });
-      }
-    } catch {
-      // Keep the starter detector resilient to malformed package.json files.
+      pushEvidenceEntry(evidence, {
+        source: `package.json:scripts.${scriptName}`,
+        filePath: toRelative(repoRoot, packageJsonPath),
+        value: scriptValue,
+        kind: 'script'
+      });
     }
   }
 
@@ -121,7 +130,7 @@ export async function collectRuntimeEvidenceEntries(
       continue;
     }
 
-    evidence.push({
+    pushEvidenceEntry(evidence, {
       source: fileName,
       filePath: toRelative(repoRoot, filePath),
       value: findVersionLine(content),
@@ -131,7 +140,9 @@ export async function collectRuntimeEvidenceEntries(
 
   const dockerFiles = await walkFiles(
     analysisRoot,
-    (filePath) => /(^|\/)Dockerfile/i.test(filePath) || filePath.endsWith('.dockerfile'),
+    (filePath) =>
+      /(^|\/)Dockerfile(?:\.[^/]+)?$/i.test(filePath) ||
+      filePath.toLowerCase().endsWith('.dockerfile'),
     3
   );
 
@@ -142,15 +153,30 @@ export async function collectRuntimeEvidenceEntries(
       continue;
     }
 
-    const matches = content.match(/FROM\s+node:([^\s]+)/gi) ?? [];
+    const lines = content.split(/\r?\n/);
 
-    for (const match of matches) {
-      evidence.push({
-        source: 'Dockerfile',
-        filePath: toRelative(repoRoot, dockerFile),
-        value: match.replace(/^FROM\s+/i, ''),
-        kind: 'docker'
-      });
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      const fromMatch = trimmedLine.match(/^FROM\s+node:([^\s]+)/i);
+      const argMatch = trimmedLine.match(/^(ARG|ENV)\s+NODE_VERSION[=\s]+(.+)$/i);
+
+      if (fromMatch) {
+        pushEvidenceEntry(evidence, {
+          source: 'Dockerfile:FROM',
+          filePath: toRelative(repoRoot, dockerFile),
+          value: `node:${fromMatch[1]}`,
+          kind: 'docker'
+        });
+      }
+
+      if (argMatch) {
+        pushEvidenceEntry(evidence, {
+          source: `Dockerfile:${argMatch[1].toUpperCase()}`,
+          filePath: toRelative(repoRoot, dockerFile),
+          value: argMatch[2],
+          kind: 'docker'
+        });
+      }
     }
   }
 
@@ -168,15 +194,32 @@ export async function collectRuntimeEvidenceEntries(
       continue;
     }
 
-    const matches = content.match(/node-version\s*:\s*["']?([^\n"']+)/gi) ?? [];
+    try {
+      const parsedWorkflow = YAML.parse(content) as unknown;
+      const workflowNodeVersions = collectNestedValues(
+        parsedWorkflow,
+        (key) => key === 'node-version' || key === 'node-version-file'
+      );
 
-    for (const match of matches) {
-      evidence.push({
-        source: 'github-actions',
-        filePath: toRelative(repoRoot, workflowFile),
-        value: match.split(':').slice(1).join(':').trim().replace(/["']/g, ''),
-        kind: 'github-actions'
-      });
+      for (const workflowNodeVersion of workflowNodeVersions) {
+        pushEvidenceEntry(evidence, {
+          source: `github-actions:${workflowNodeVersion.keyPath}`,
+          filePath: toRelative(repoRoot, workflowFile),
+          value: workflowNodeVersion.value,
+          kind: 'github-actions'
+        });
+      }
+    } catch {
+      const matches = content.match(/node-version(?:-file)?\s*:\s*["']?([^\n"']+)/gi) ?? [];
+
+      for (const match of matches) {
+        pushEvidenceEntry(evidence, {
+          source: 'github-actions',
+          filePath: toRelative(repoRoot, workflowFile),
+          value: match.split(':').slice(1).join(':').trim().replace(/["']/g, ''),
+          kind: 'github-actions'
+        });
+      }
     }
   }
 
@@ -196,20 +239,75 @@ export async function collectRuntimeEvidenceEntries(
       continue;
     }
 
+    const relativeFilePath = toRelative(repoRoot, deploymentFile);
+
+    if (deploymentFile.endsWith('vercel.json')) {
+      const parsedConfig = await readJsonIfExists<Record<string, unknown>>(
+        deploymentFile
+      );
+      const matches = collectNestedValues(
+        parsedConfig,
+        (key, value) =>
+          /node/i.test(key) || /runtime/i.test(key) || /node/i.test(value)
+      );
+
+      for (const match of matches) {
+        pushEvidenceEntry(evidence, {
+          source: `deployment:${match.keyPath}`,
+          filePath: relativeFilePath,
+          value: match.value,
+          kind: 'deployment'
+        });
+      }
+
+      continue;
+    }
+
+    if (deploymentFile.endsWith('render.yaml') || deploymentFile.endsWith('render.yml')) {
+      try {
+        const parsedConfig = YAML.parse(content) as unknown;
+        const matches = collectNestedValues(
+          parsedConfig,
+          (key, value) =>
+            /node/i.test(key) || /runtime/i.test(key) || /node/i.test(value)
+        );
+
+        for (const match of matches) {
+          pushEvidenceEntry(evidence, {
+            source: `deployment:${match.keyPath}`,
+            filePath: relativeFilePath,
+            value: match.value,
+            kind: 'deployment'
+          });
+        }
+
+        continue;
+      } catch {
+        // Fall back to line scanning below.
+      }
+    }
+
     const deploymentLines = content
       .split(/\r?\n/)
       .map((line) => line.trim())
-      .filter((line) => /(node|NODE_VERSION|engines|runtime)/.test(line));
+      .filter((line) => /(node|NODE_VERSION|engines|runtime)/i.test(line));
 
     for (const line of deploymentLines) {
-      evidence.push({
+      pushEvidenceEntry(evidence, {
         source: 'deployment-config',
-        filePath: toRelative(repoRoot, deploymentFile),
+        filePath: relativeFilePath,
         value: line,
         kind: 'deployment'
       });
     }
   }
 
-  return evidence;
+  const deduplicatedEvidence = new Map<string, RuntimeEvidenceEntry>();
+
+  for (const entry of evidence) {
+    const key = `${entry.kind}|${entry.filePath}|${entry.source}|${entry.value}`;
+    deduplicatedEvidence.set(key, entry);
+  }
+
+  return sortRuntimeEvidence(Array.from(deduplicatedEvidence.values()));
 }
