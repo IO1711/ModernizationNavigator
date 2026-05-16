@@ -1,0 +1,13 @@
+{
+  "latestReportPath": "/tmp/report.json",
+  "history": [
+    {
+      "reportId": "bad",
+      "createdAt": "not-a-date",
+      "reportPath": "../history/escape.json",
+      "requestedTargetNodeVersion": "",
+      "subdirectory": "../outside"
+    }
+  ],
+  "extra": true
+}

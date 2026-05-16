@@ -1,0 +1,22 @@
+{
+  "reportId": "partial-20260516T130000Z",
+  "createdAt": "2026-05-16T13:00:00.000Z",
+  "repoRoot": "/workspace/partial-service",
+  "requestedTargetNodeVersion": "20",
+  "evaluatedTargetNodeVersions": [
+    "20"
+  ],
+  "detectedPackageManager": "pnpm",
+  "offlineMode": false,
+  "externalDataStatus": {
+    "npmRegistry": "used",
+    "osv": "used",
+    "notes": [
+      "This fixture is intentionally incomplete."
+    ]
+  },
+  "toolTrace": [],
+  "runtimeEvidence": [],
+  "issues": [],
+  "validationChecklist": []
+}

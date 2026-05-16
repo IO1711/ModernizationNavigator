@@ -1,0 +1,63 @@
+{
+  "reportId": "20260516T120000Z",
+  "createdAt": "2026-05-16T12:00:00.000Z",
+  "repoRoot": "/workspace/single-service",
+  "requestedTargetNodeVersion": "18",
+  "evaluatedTargetNodeVersions": [
+    "18"
+  ],
+  "detectedPackageManager": "npm",
+  "offlineMode": true,
+  "externalDataStatus": {
+    "npmRegistry": "skipped_offline",
+    "osv": "skipped_offline",
+    "notes": [
+      "Offline fixture remains valid without a subdirectory."
+    ]
+  },
+  "toolTrace": [
+    {
+      "toolName": "discover_repo_scope",
+      "purpose": "Detect repo boundaries",
+      "status": "success",
+      "startedAt": "2026-05-16T12:00:00.000Z",
+      "finishedAt": "2026-05-16T12:00:01.000Z",
+      "resultSummary": "Detected a single-project npm repository."
+    }
+  ],
+  "runtimeEvidence": [],
+  "issues": [],
+  "bobDecision": {
+    "summary": "Proceed directly to Node 18 because no blockers were identified in the saved fixture.",
+    "selectedTargetPath": "Direct Node 18 upgrade",
+    "rationale": "The fixture models a low-risk single-service upgrade.",
+    "prioritizedRisks": [],
+    "chosenSolutions": [
+      "Upgrade directly to Node 18"
+    ],
+    "tradeoffs": []
+  },
+  "bobExecutionPlan": [
+    {
+      "phase": "Phase 1",
+      "order": 1,
+      "title": "Upgrade runtime declarations",
+      "actions": [
+        "Update package.json engines."
+      ],
+      "dependsOn": [],
+      "validation": [
+        "Install succeeds on Node 18"
+      ]
+    }
+  ],
+  "validationChecklist": [
+    {
+      "title": "Install",
+      "commands": [
+        "npm install"
+      ],
+      "expectedResult": "Install succeeds on Node 18."
+    }
+  ]
+}

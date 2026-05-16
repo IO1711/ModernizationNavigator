@@ -1,0 +1,18 @@
+{
+  "latestReportPath": "reports/latest/report.json",
+  "history": [
+    {
+      "reportId": "contract-20260516T110000Z",
+      "createdAt": "2026-05-16T11:00:00.000Z",
+      "reportPath": "reports/history/contract-20260516T110000Z.json",
+      "requestedTargetNodeVersion": "20",
+      "subdirectory": "services/api"
+    },
+    {
+      "reportId": "20260516T120000Z",
+      "createdAt": "2026-05-16T12:00:00.000Z",
+      "reportPath": "reports/history/20260516T120000Z.json",
+      "requestedTargetNodeVersion": "18"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+export * from './schemas/primitives';
 export * from './constants/report-paths';
 export * from './constants/tool-names';
 export * from './schemas/manifest';

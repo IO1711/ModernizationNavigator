@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { reportManifestEntrySchema, reportManifestSchema } from '../schemas/manifest';
 import {
   alternativeSolutionSchema,
   bobDecisionSchema,
@@ -25,3 +26,5 @@ export type BobDecision = z.infer<typeof bobDecisionSchema>;
 export type BobExecutionPlanItem = z.infer<typeof bobExecutionPlanItemSchema>;
 export type ValidationChecklistItem = z.infer<typeof validationChecklistItemSchema>;
 export type Report = z.infer<typeof reportSchema>;
+export type ReportManifestEntry = z.infer<typeof reportManifestEntrySchema>;
+export type ReportManifest = z.infer<typeof reportManifestSchema>;
