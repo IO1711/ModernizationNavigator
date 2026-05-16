@@ -1,0 +1,12 @@
+[
+  {
+    "id": "node-legacy-16",
+    "match": {
+      "currentNodeRange": "<18"
+    },
+    "incompatibilityReason": "Node.js versions below 18 increase upgrade risk for modern tooling and hosted runtimes.",
+    "defaultTechnicalRecommendation": "Upgrade to an intermediate LTS before attempting the final target when dependency blockers remain.",
+    "alternativeSolutions": [],
+    "evidenceHints": ["package.json engines", ".nvmrc", "Docker base image tags"]
+  }
+]

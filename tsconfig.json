@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/knowledge-base" },
+    { "path": "packages/providers" },
+    { "path": "packages/analysis-engine" },
+    { "path": "packages/viewer-server" },
+    { "path": "packages/mcp-server" }
+  ]
+}

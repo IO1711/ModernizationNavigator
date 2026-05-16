@@ -1,0 +1,15 @@
+{
+  "name": "@modernization-navigator/analysis-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "@modernization-navigator/shared": "workspace:*",
+    "@modernization-navigator/providers": "workspace:*",
+    "@modernization-navigator/knowledge-base": "workspace:*",
+    "ts-morph": "latest",
+    "yaml": "latest"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@modernization-navigator/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "@modernization-navigator/shared": "workspace:*",
+    "@modernization-navigator/analysis-engine": "workspace:*",
+    "@modernization-navigator/viewer-server": "workspace:*"
+  }
+}

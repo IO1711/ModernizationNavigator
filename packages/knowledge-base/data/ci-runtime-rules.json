@@ -1,0 +1,12 @@
+[
+  {
+    "id": "gha-setup-node-review",
+    "match": {
+      "workflowPattern": "setup-node"
+    },
+    "incompatibilityReason": "GitHub Actions workflows can pin a Node version that diverges from the target runtime.",
+    "defaultTechnicalRecommendation": "Update workflow node-version settings in the same phase as the runtime upgrade.",
+    "alternativeSolutions": [],
+    "evidenceHints": [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+  }
+]

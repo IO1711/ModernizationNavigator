@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "modernization-navigator": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/index.js"],
+      "alwaysAllow": [
+        "discover_repo_scope",
+        "collect_runtime_evidence",
+        "inspect_dependency_blockers",
+        "inspect_ops_runtime",
+        "inspect_source_compatibility",
+        "compare_target_paths",
+        "save_modernization_report",
+        "open_report_viewer"
+      ]
+    }
+  }
+}

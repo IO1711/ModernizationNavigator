@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modernization Navigator Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <p class="eyebrow">Modernization Navigator</p>
+        <h1>Decision Viewer</h1>
+        <p class="sidebar-copy">
+          Review Bob’s recommendation, evidence, and rollout plan from the saved
+          report artifact.
+        </p>
+        <label class="history-picker" for="history-select">
+          <span>History</span>
+          <select id="history-select"></select>
+        </label>
+        <div class="meta-grid" id="report-meta"></div>
+      </aside>
+
+      <main class="main">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">Bob Recommendation</p>
+            <h2 id="decision-title">Loading latest report...</h2>
+            <p id="decision-summary" class="hero-copy"></p>
+          </div>
+          <div class="hero-pillbox" id="decision-pills"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Evaluated Target Paths</h3>
+          <div id="target-paths" class="grid cards"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Issues</h3>
+          <div id="issues" class="grid issues"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Evidence</h3>
+          <div id="evidence" class="grid compact-grid"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Execution Plan</h3>
+          <div id="execution-plan" class="grid plan-grid"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Validation Checklist</h3>
+          <div id="validation-checklist" class="grid compact-grid"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Tool Trace</h3>
+          <div id="tool-trace" class="grid compact-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./viewer-config.demo.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

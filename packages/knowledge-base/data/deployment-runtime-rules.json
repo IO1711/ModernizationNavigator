@@ -1,0 +1,12 @@
+[
+  {
+    "id": "deployment-runtime-review",
+    "match": {
+      "deploymentFiles": ["vercel.json", "netlify.toml", "render.yaml", "fly.toml"]
+    },
+    "incompatibilityReason": "Deployment platform runtime settings can lag behind the repo's declared target version.",
+    "defaultTechnicalRecommendation": "Review platform-specific runtime declarations during the rollout plan.",
+    "alternativeSolutions": [],
+    "evidenceHints": ["deployment config", "Dockerfile", "build scripts"]
+  }
+]

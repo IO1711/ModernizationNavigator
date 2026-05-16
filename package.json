@@ -1,0 +1,25 @@
+{
+  "name": "modernization-navigator",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "build": "tsc -b packages/shared packages/knowledge-base packages/providers packages/analysis-engine packages/viewer-server packages/mcp-server",
+    "typecheck": "tsc -b --pretty",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "viewer:serve": "node packages/viewer-server/dist/server.js",
+    "viewer:demo-sync": "tsx scripts/sync-demo-sample.ts",
+    "mcp:dev": "tsx packages/mcp-server/src/index.ts",
+    "mcp:build": "tsc -b packages/shared packages/knowledge-base packages/providers packages/analysis-engine packages/viewer-server packages/mcp-server"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "eslint": "latest",
+    "prettier": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}

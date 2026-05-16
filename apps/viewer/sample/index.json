@@ -1,0 +1,12 @@
+{
+  "latestReportPath": "./reports/sample-report.json",
+  "history": [
+    {
+      "reportId": "sample-20260516T090000Z",
+      "createdAt": "2026-05-16T09:00:00.000Z",
+      "reportPath": "./reports/sample-report.json",
+      "requestedTargetNodeVersion": "20",
+      "subdirectory": "services/api"
+    }
+  ]
+}

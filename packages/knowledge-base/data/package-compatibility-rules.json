@@ -1,0 +1,12 @@
+[
+  {
+    "id": "native-addon-review",
+    "match": {
+      "packagePatterns": ["node-gyp", "nan", "bindings"]
+    },
+    "incompatibilityReason": "Native addon toolchains often need extra verification during Node major upgrades.",
+    "defaultTechnicalRecommendation": "Validate native addon support on the requested target version before taking a direct path.",
+    "alternativeSolutions": [],
+    "evidenceHints": ["dependencies", "optionalDependencies", "install scripts"]
+  }
+]
