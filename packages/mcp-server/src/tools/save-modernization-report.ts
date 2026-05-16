@@ -13,7 +13,10 @@ export async function saveModernizationReport(
 ): Promise<SaveModernizationReportResult> {
   const parsedInput = saveModernizationReportInputSchema.parse(input);
   const report = reportSchema.parse(parsedInput.report);
-  const reportPath = await writeLatestReport(report);
+
+  // Write history and update the manifest BEFORE overwriting `latest`.
+  // If a later step fails, `latest` still points to the previous valid
+  // report instead of a half-saved one the viewer can't reconcile.
   const historyPath = await writeHistoryReport(report);
 
   await updateReportManifest({
@@ -23,6 +26,8 @@ export async function saveModernizationReport(
     requestedTargetNodeVersion: report.requestedTargetNodeVersion,
     subdirectory: report.subdirectory
   });
+
+  const reportPath = await writeLatestReport(report);
 
   return saveModernizationReportResultSchema.parse({
     reportId: report.reportId,

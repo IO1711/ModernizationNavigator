@@ -226,8 +226,10 @@ async function test4_SaveModernizationReport(): Promise<void> {
     // Read the sample report
     const sampleReport = await readJsonFile('reports/latest/report.json') as Record<string, unknown>;
     
-    // Create a test report with a unique ID
-    const testReportId = `test-${Date.now()}`;
+    // Create a test report with a schema-compliant timestamp-based ID
+    // (Dev 4 shared schema requires /^(prefix-)?YYYYMMDDTHHMMSSZ$/i)
+    const timestampId = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+    const testReportId = `test-${timestampId}`;
     const testReport = {
       ...sampleReport,
       reportId: testReportId,

@@ -83,6 +83,20 @@ export async function discoverRepoScope(
   input: BaseToolInput
 ): Promise<DiscoverRepoScopeResult> {
   const parsedInput = baseToolInputSchema.parse(input);
+
+  // Fail loudly on a non-existent or non-directory repoRoot. Otherwise the
+  // filesystem walk swallows ENOENT and we'd return a result that looks
+  // valid (empty candidateProjects + fallback npm) for a path that doesn't exist.
+  let stat;
+  try {
+    stat = await fs.stat(parsedInput.repoRoot);
+  } catch {
+    throw new Error(`repoRoot does not exist: ${parsedInput.repoRoot}`);
+  }
+  if (!stat.isDirectory()) {
+    throw new Error(`repoRoot is not a directory: ${parsedInput.repoRoot}`);
+  }
+
   const candidateProjects = await collectCandidateProjects(parsedInput.repoRoot);
   const rootPackageJson = await readJsonIfExists(
     path.join(parsedInput.repoRoot, 'package.json')
