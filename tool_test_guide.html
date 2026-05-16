@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modernization Navigator Actual Tool Test Guide</title>
+  <style>
+    :root {
+      --bg: #f3ede5;
+      --bg-2: #edf5ff;
+      --panel: rgba(255, 255, 255, 0.92);
+      --panel-2: rgba(255, 255, 255, 0.78);
+      --text: #142130;
+      --muted: #586576;
+      --line: rgba(20, 33, 48, 0.12);
+      --line-strong: rgba(20, 33, 48, 0.22);
+      --accent: #0f62fe;
+      --accent-soft: rgba(15, 98, 254, 0.12);
+      --accent-2: #ff7f41;
+      --good: #198038;
+      --good-soft: rgba(25, 128, 56, 0.12);
+      --warn: #8f3e14;
+      --warn-soft: rgba(255, 127, 65, 0.14);
+      --code-bg: #0f1724;
+      --code-text: #e9f2ff;
+      --shadow: 0 18px 44px rgba(12, 24, 36, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --max: 1500px;
+      --sidebar: 320px;
+      --sans: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.98), transparent 28%),
+        linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code,
+    pre {
+      font-family: var(--mono);
+    }
+
+    .layout {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+      gap: 24px;
+      padding: 24px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      display: grid;
+      gap: 18px;
+    }
+
+    .sidebar-card,
+    .hero,
+    .section,
+    .step,
+    .mini-card,
+    .status-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .sidebar-card {
+      padding: 22px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sidebar h1,
+    .hero h2,
+    .section h2,
+    .step h3,
+    .mini-card h3,
+    .status-card h3 {
+      margin: 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .sidebar p,
+    .hero p,
+    .section p,
+    .section li,
+    .step p,
+    .step li,
+    .mini-card p,
+    .status-card p,
+    .status-card li {
+      line-height: 1.6;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav a {
+      display: block;
+      padding: 11px 13px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .nav a:hover {
+      background: rgba(255, 255, 255, 0.72);
+      border-color: var(--line);
+      text-decoration: none;
+    }
+
+    .stack {
+      display: grid;
+      gap: 24px;
+    }
+
+    .hero,
+    .section {
+      padding: 28px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--warn-soft);
+      color: var(--warn);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hero h2 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.02;
+      max-width: 13ch;
+    }
+
+    .hero p {
+      max-width: 70ch;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      padding: 10px 13px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .pill.good {
+      background: var(--good-soft);
+      color: var(--good);
+      border-color: rgba(25, 128, 56, 0.14);
+    }
+
+    .pill.info {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(15, 98, 254, 0.14);
+    }
+
+    .pill.warn {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: rgba(143, 62, 20, 0.12);
+    }
+
+    .grid-2,
+    .grid-3,
+    .steps,
+    .check-grid,
+    .tool-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .status-card,
+    .mini-card {
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      background: var(--panel-2);
+    }
+
+    .status-card.good {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 252, 245, 0.97));
+    }
+
+    .status-card.warn {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 247, 241, 0.98));
+    }
+
+    .status-card ul,
+    .section ul,
+    .section ol,
+    .step ul,
+    .step ol {
+      margin: 12px 0 0 20px;
+      padding: 0;
+    }
+
+    .status-card li + li,
+    .section li + li,
+    .step li + li {
+      margin-top: 8px;
+    }
+
+    .steps {
+      margin-top: 18px;
+    }
+
+    .step {
+      position: relative;
+      padding: 22px 22px 22px 84px;
+    }
+
+    .step-number {
+      position: absolute;
+      left: 22px;
+      top: 22px;
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--accent), #3f8cff);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 1rem;
+      box-shadow: 0 10px 22px rgba(15, 98, 254, 0.24);
+    }
+
+    .step h3 {
+      margin-bottom: 10px;
+      font-size: 1.08rem;
+    }
+
+    .step p:last-child,
+    .step ul:last-child,
+    .step ol:last-child {
+      margin-bottom: 0;
+    }
+
+    .code {
+      margin: 14px 0 0;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--code-bg);
+      color: var(--code-text);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+      font-size: 0.93rem;
+      line-height: 1.55;
+    }
+
+    .inline-code {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 8px;
+      background: rgba(15, 23, 36, 0.06);
+      border: 1px solid rgba(15, 23, 36, 0.08);
+      font-family: var(--mono);
+      font-size: 0.95em;
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+      font-size: 0.92em;
+      font-weight: 700;
+    }
+
+    .callout {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .tool-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 18px;
+    }
+
+    .tool-card {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.96));
+    }
+
+    .tool-card code {
+      font-size: 0.96rem;
+      font-weight: 700;
+    }
+
+    .tool-card p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.5;
+    }
+
+    .check-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 18px;
+    }
+
+    .check-card {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.74);
+    }
+
+    .check-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .footer-note {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .hero,
+      .section,
+      .sidebar-card {
+        padding: 22px;
+      }
+
+      .step {
+        padding: 82px 18px 20px;
+      }
+
+      .step-number {
+        left: 18px;
+        top: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <section class="sidebar-card">
+        <div class="brand">Modernization Navigator</div>
+        <h1>Actual Tool Test Guide</h1>
+        <p class="muted">
+          Exact test steps for the current implemented repo state. This version
+          is based on a fresh dependency install, a green build, green Vitest
+          contract tests, verified direct MCP calls, and verified viewer route
+          checks.
+        </p>
+        <nav class="nav">
+          <a href="#status">Verified Status</a>
+          <a href="#order">Recommended Order</a>
+          <a href="#setup">Setup</a>
+          <a href="#automated">Automated Checks</a>
+          <a href="#mcp">Direct MCP Smoke Test</a>
+          <a href="#viewer">Viewer Smoke Test</a>
+          <a href="#bob">IBM Bob Manual Test</a>
+          <a href="#artifacts">Artifacts To Check</a>
+          <a href="#caveats">Known Caveats</a>
+          <a href="#sources">Sources</a>
+        </nav>
+      </section>
+
+      <section class="sidebar-card">
+        <h2 style="font-size:1rem; margin-bottom:10px;">Best First Run</h2>
+        <p class="muted">
+          Do this in order:
+          <span class="inline-code">npm install</span>,
+          <span class="inline-code">npm run build</span>,
+          <span class="inline-code">npx vitest run</span>,
+          then the direct MCP smoke test.
+        </p>
+      </section>
+
+      <section class="sidebar-card">
+        <h2 style="font-size:1rem; margin-bottom:10px;">Most Important Rule</h2>
+        <p class="muted">
+          A valid saved report must use a timestamp-based
+          <span class="inline-code">reportId</span> such as
+          <span class="inline-code">guide-20260516T102714Z</span> or
+          <span class="inline-code">20260516T102714Z</span>.
+        </p>
+      </section>
+    </aside>
+
+    <main class="stack">
+      <section class="hero">
+        <span class="eyebrow">Verified Flow</span>
+        <h2>Install, build, run contract tests, then smoke-test MCP and the viewer with exact commands.</h2>
+        <p>
+          The repo now supports a real testing flow. The guide below no longer
+          treats the tool as half-finished. It does, however, call out one stale
+          repo script that still uses an old report ID format.
+        </p>
+        <div class="pill-row">
+          <span class="pill good">Verified: npm install</span>
+          <span class="pill good">Verified: npm run build</span>
+          <span class="pill good">Verified: 4 test files, 16 tests pass</span>
+          <span class="pill info">Verified: tools/list, discover, save, open</span>
+          <span class="pill info">Verified: viewer routes return 200</span>
+          <span class="pill warn">Watch: old completion script has one stale case</span>
+        </div>
+      </section>
+
+      <section class="section" id="status">
+        <h2>Verified Status</h2>
+        <div class="grid-2" style="margin-top:18px;">
+          <article class="status-card good">
+            <h3>What is confirmed working</h3>
+            <ul>
+              <li><span class="inline-code">npm install</span> installs the missing MCP dependencies.</li>
+              <li><span class="inline-code">npm run build</span> completes successfully.</li>
+              <li><span class="inline-code">npx vitest run</span> passes all 4 contract test files and all 16 tests.</li>
+              <li><span class="inline-code">tools/list</span> returns exactly 8 MCP tools.</li>
+              <li><span class="inline-code">discover_repo_scope</span> returns <span class="inline-code">pnpm</span> and <span class="inline-code">monorepo</span> in the current repo.</li>
+              <li><span class="inline-code">save_modernization_report</span> succeeds when the report uses a valid timestamp-style <span class="inline-code">reportId</span>.</li>
+              <li><span class="inline-code">open_report_viewer</span> returns a valid <span class="inline-code">viewerUrl</span> and <span class="inline-code">serverStatus</span>.</li>
+              <li>The viewer page, demo page, and report manifest all serve correctly through the local viewer server.</li>
+            </ul>
+          </article>
+          <article class="status-card warn">
+            <h3>What still needs care</h3>
+            <ul>
+              <li><span class="inline-code">scripts/test-dev1-completion.ts</span> is not the best primary pass/fail check right now.</li>
+              <li>Its save-report test still generates IDs like <span class="inline-code">test-1778920405745</span>, but the current schema now requires timestamp-based IDs like <span class="inline-code">guide-20260516T102714Z</span>.</li>
+              <li>If you rerun <span class="inline-code">open_report_viewer</span> on a port that is already occupied, use a different <span class="inline-code">VIEWER_PORT</span>.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="order">
+        <h2>Recommended Order</h2>
+        <ol>
+          <li>Install dependencies.</li>
+          <li>Build the workspace.</li>
+          <li>Run Vitest contract checks.</li>
+          <li>Run the direct MCP smoke test from Terminal.</li>
+          <li>Run the viewer smoke test in a browser.</li>
+          <li>Run the IBM Bob manual E2E test.</li>
+        </ol>
+        <div class="callout">
+          <strong>Why this order</strong>
+          It moves from the fastest local checks to the most complete manual
+          flow. If something breaks, you find out early, before opening Bob.
+        </div>
+      </section>
+
+      <section class="section" id="setup">
+        <h2>Setup</h2>
+        <div class="steps">
+          <article class="step">
+            <div class="step-number">1</div>
+            <h3>Open Terminal</h3>
+            <p>
+              Open the Terminal app on your machine. If you prefer iTerm or
+              another shell app, that is fine too.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">2</div>
+            <h3>Go to the repo root</h3>
+            <p>Run this exact command:</p>
+            <pre class="code"><code>cd /Users/bilolbekrayimov/games/IBM_hackathon</code></pre>
+          </article>
+
+          <article class="step">
+            <div class="step-number">3</div>
+            <h3>Confirm the current folder</h3>
+            <pre class="code"><code>pwd</code></pre>
+            <p>
+              Expected result:
+              <span class="inline-code">/Users/bilolbekrayimov/games/IBM_hackathon</span>
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">4</div>
+            <h3>Install dependencies</h3>
+            <pre class="code"><code>npm install</code></pre>
+            <p>
+              Wait for the command to finish. Do not continue while it is still
+              running.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">5</div>
+            <h3>Build the workspace</h3>
+            <pre class="code"><code>npm run build</code></pre>
+            <p>
+              Pass condition: the command exits successfully and does not print
+              TypeScript errors.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="automated">
+        <h2>Automated Checks</h2>
+        <div class="steps">
+          <article class="step">
+            <div class="step-number">1</div>
+            <h3>Run the shared contract tests</h3>
+            <pre class="code"><code>npx vitest run</code></pre>
+            <p>Expected result in Terminal:</p>
+            <pre class="code"><code>Test Files  4 passed (4)
+Tests       16 passed (16)</code></pre>
+          </article>
+
+          <article class="step">
+            <div class="step-number">2</div>
+            <h3>Do not use the old completion script as your only pass/fail check</h3>
+            <p>
+              You may notice <span class="inline-code">scripts/test-dev1-completion.ts</span>.
+              That script is useful as a reference, but it currently has one
+              stale save-report case because it still creates a report ID like
+              <span class="inline-code">test-&lt;epoch&gt;</span>. The current
+              schema no longer accepts that format.
+            </p>
+            <p>
+              For that reason, the direct MCP smoke test below is the better
+              source of truth.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="mcp">
+        <h2>Direct MCP Smoke Test</h2>
+        <p class="muted">
+          This is the most exact command-line test in the repo right now. It
+          checks the actual MCP server, without depending on the Bob UI.
+        </p>
+
+        <div class="steps">
+          <article class="step">
+            <div class="step-number">1</div>
+            <h3>Stay in the repo root</h3>
+            <p>
+              Make sure your terminal prompt is still inside
+              <span class="inline-code">/Users/bilolbekrayimov/games/IBM_hackathon</span>.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">2</div>
+            <h3>Paste this exact smoke-test block into Terminal</h3>
+            <p>
+              Copy the whole block below, paste it into Terminal, then press
+              <kbd>Enter</kbd>.
+            </p>
+            <pre class="code"><code>node &lt;&lt;'NODE'
+const { spawn } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
+
+function callMcp(method, params, env = {}) {
+  return new Promise((resolve, reject) =&gt; {
+    const child = spawn('node', [path.join(process.cwd(), 'packages/mcp-server/dist/index.js')], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, ...env }
+    });
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+
+    child.stdout.on('data', (chunk) =&gt; {
+      stdout += chunk.toString();
+      try {
+        const parsed = JSON.parse(stdout);
+        if (!settled) {
+          settled = true;
+          resolve(parsed);
+          child.kill();
+        }
+      } catch {}
+    });
+
+    child.stderr.on('data', (chunk) =&gt; {
+      stderr += chunk.toString();
+    });
+
+    child.on('error', (error) =&gt; {
+      if (!settled) {
+        settled = true;
+        reject(error);
+      }
+    });
+
+    child.on('close', () =&gt; {
+      if (!settled) {
+        reject(new Error(`Could not parse MCP response.\nSTDOUT:\n${stdout}\nSTDERR:\n${stderr}`));
+      }
+    });
+
+    child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) + '\n');
+    child.stdin.end();
+  });
+}
+
+(async () =&gt; {
+  const repoRoot = process.cwd();
+  const list = await callMcp('tools/list');
+  console.log('Tool count:', list.result.tools.length);
+
+  const discover = await callMcp('tools/call', {
+    name: 'discover_repo_scope',
+    arguments: { repoRoot }
+  });
+  console.log('discover_repo_scope:', discover.result.content[0].text);
+
+  const report = JSON.parse(fs.readFileSync('fixtures/contracts/reports/valid-report.json', 'utf8'));
+  const reportId = `guide-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}`;
+  report.reportId = reportId;
+  report.createdAt = new Date().toISOString();
+  report.repoRoot = repoRoot;
+
+  const save = await callMcp('tools/call', {
+    name: 'save_modernization_report',
+    arguments: { report }
+  });
+  console.log('save_modernization_report:', save.result.content[0].text);
+
+  const open = await callMcp('tools/call', {
+    name: 'open_report_viewer',
+    arguments: { reportPath: 'reports/latest/report.json', autoOpenViewer: false }
+  }, { VIEWER_PORT: '4557' });
+  console.log('open_report_viewer:', open.result.content[0].text);
+})();
+NODE</code></pre>
+          </article>
+
+          <article class="step">
+            <div class="step-number">3</div>
+            <h3>Read the expected results</h3>
+            <ul>
+              <li>You should see <span class="inline-code">Tool count: 8</span>.</li>
+              <li>The <span class="inline-code">discover_repo_scope</span> result should include <span class="inline-code">"detectedPackageManager": "pnpm"</span>.</li>
+              <li>The same result should include <span class="inline-code">"workspaceType": "monorepo"</span>.</li>
+              <li>The <span class="inline-code">save_modernization_report</span> result should include <span class="inline-code">"reportPath": "reports/latest/report.json"</span>.</li>
+              <li>The same save result should include a history file path under <span class="inline-code">reports/history/</span>.</li>
+              <li>The <span class="inline-code">open_report_viewer</span> result should include a URL like <span class="inline-code">http://127.0.0.1:4557/</span> and a status like <span class="inline-code">"started"</span>.</li>
+            </ul>
+          </article>
+
+          <article class="step">
+            <div class="step-number">4</div>
+            <h3>Understand what the script did</h3>
+            <ul>
+              <li>It listed the MCP tools.</li>
+              <li>It ran <span class="inline-code">discover_repo_scope</span>.</li>
+              <li>It loaded the valid fixture report from <span class="inline-code">fixtures/contracts/reports/valid-report.json</span>.</li>
+              <li>It replaced the fixture report ID with a schema-compliant timestamp ID.</li>
+              <li>It saved the report through the actual MCP tool.</li>
+              <li>It checked the response contract for <span class="inline-code">open_report_viewer</span>.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="callout">
+          <strong>Important note about the open tool</strong>
+          The smoke script kills the spawned MCP process after it receives the
+          JSON response. That is correct for a contract test, but it means the
+          viewer server from that script does not stay alive for browsing. Use
+          the Viewer Smoke Test section below when you want to actually open the
+          page in a browser and look around.
+        </div>
+      </section>
+
+      <section class="section" id="viewer">
+        <h2>Viewer Smoke Test</h2>
+        <p class="muted">
+          Use this to visually confirm the report page after the tool-level
+          checks pass.
+        </p>
+
+        <div class="steps">
+          <article class="step">
+            <div class="step-number">1</div>
+            <h3>Open a new terminal tab or a new terminal window</h3>
+            <p>
+              Keep your first terminal available if you want to compare outputs,
+              but start the viewer in a fresh terminal so it is easy to stop.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">2</div>
+            <h3>Go back to the repo root</h3>
+            <pre class="code"><code>cd /Users/bilolbekrayimov/games/IBM_hackathon</code></pre>
+          </article>
+
+          <article class="step">
+            <div class="step-number">3</div>
+            <h3>Start the viewer server on a known free port</h3>
+            <pre class="code"><code>VIEWER_PORT=4556 npm run viewer:serve</code></pre>
+            <p>
+              Leave this terminal window open after the command starts.
+            </p>
+            <p>
+              Expected result in Terminal:
+              <span class="inline-code">Viewer server started at http://127.0.0.1:4556/</span>
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">4</div>
+            <h3>Open a browser</h3>
+            <p>
+              Open Chrome, Safari, Edge, or another desktop browser.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">5</div>
+            <h3>Open the live viewer page</h3>
+            <p>
+              Click the browser address bar, type this exact URL, then press
+              <kbd>Enter</kbd>:
+            </p>
+            <pre class="code"><code>http://127.0.0.1:4556/</code></pre>
+          </article>
+
+          <article class="step">
+            <div class="step-number">6</div>
+            <h3>Check the page structure</h3>
+            <ul>
+              <li>In the left sidebar, you should see <span class="inline-code">Modernization Navigator</span>.</li>
+              <li>The main page title area should show <span class="inline-code">Decision Viewer</span>.</li>
+              <li>You should see a sidebar dropdown labeled <span class="inline-code">History</span>.</li>
+              <li>You should see panels titled <span class="inline-code">Evaluated Target Paths</span>, <span class="inline-code">Issues</span>, <span class="inline-code">Evidence</span>, <span class="inline-code">Execution Plan</span>, <span class="inline-code">Validation Checklist</span>, and <span class="inline-code">Tool Trace</span>.</li>
+            </ul>
+          </article>
+
+          <article class="step">
+            <div class="step-number">7</div>
+            <h3>Try the History dropdown</h3>
+            <ul>
+              <li>Click the <span class="inline-code">History</span> dropdown in the left sidebar.</li>
+              <li>Select a different entry if more than one is present.</li>
+              <li>The page should refresh the displayed report data without navigating away from the viewer page.</li>
+            </ul>
+          </article>
+
+          <article class="step">
+            <div class="step-number">8</div>
+            <h3>Open the demo page too</h3>
+            <p>
+              Click the address bar, replace the current URL with the exact URL
+              below, and press <kbd>Enter</kbd>:
+            </p>
+            <pre class="code"><code>http://127.0.0.1:4556/index.demo.html</code></pre>
+          </article>
+
+          <article class="step">
+            <div class="step-number">9</div>
+            <h3>Optionally verify the HTTP routes from Terminal</h3>
+            <pre class="code"><code>curl -s -o /dev/null -w "%{http_code} /\n" http://127.0.0.1:4556/
+curl -s -o /dev/null -w "%{http_code} /index.demo.html\n" http://127.0.0.1:4556/index.demo.html
+curl -s -o /dev/null -w "%{http_code} /reports/index.json\n" http://127.0.0.1:4556/reports/index.json
+curl --path-as-is -s -o /dev/null -w "%{http_code}\n" "http://127.0.0.1:4556/reports/../../etc/passwd"</code></pre>
+            <p>Expected results:</p>
+            <ul>
+              <li><span class="inline-code">200 /</span></li>
+              <li><span class="inline-code">200 /index.demo.html</span></li>
+              <li><span class="inline-code">200 /reports/index.json</span></li>
+              <li>The traversal check must not return <span class="inline-code">200</span>. In the verified run it returned <span class="inline-code">404</span>.</li>
+            </ul>
+          </article>
+
+          <article class="step">
+            <div class="step-number">10</div>
+            <h3>Stop the viewer server when finished</h3>
+            <p>
+              Go back to the terminal window running the viewer server and press
+              <kbd>Ctrl</kbd> + <kbd>C</kbd>.
+            </p>
+          </article>
+        </div>
+
+        <div class="check-grid">
+          <article class="check-card">
+            <strong>Best page check</strong>
+            Verify that the History dropdown exists and that the viewer does not load as raw JSON.
+          </article>
+          <article class="check-card">
+            <strong>Best HTTP check</strong>
+            Verify that the live page, demo page, and manifest all return 200.
+          </article>
+          <article class="check-card">
+            <strong>Best safety check</strong>
+            Verify that the raw traversal URL does not return 200.
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="bob">
+        <h2>IBM Bob Manual End-to-End Test</h2>
+        <p class="muted">
+          Use this after the terminal-based tests succeed. This is the closest
+          full product test because it exercises the Bob configuration as well.
+        </p>
+
+        <div class="steps">
+          <article class="step">
+            <div class="step-number">1</div>
+            <h3>Open IBM Bob</h3>
+            <p>
+              Launch IBM Bob on your machine.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">2</div>
+            <h3>Open this repository in Bob</h3>
+            <p>
+              Open the folder:
+              <span class="inline-code">/Users/bilolbekrayimov/games/IBM_hackathon</span>
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">3</div>
+            <h3>Select the correct Bob mode</h3>
+            <p>
+              Open Bob's mode selector and choose the mode named
+              <span class="inline-code">Modernization Architect</span>.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">4</div>
+            <h3>Open Bob's tools panel</h3>
+            <p>
+              Confirm that all 8 MCP tools are present.
+            </p>
+            <div class="tool-grid">
+              <article class="tool-card"><code>discover_repo_scope</code><p>Repo scope and package manager.</p></article>
+              <article class="tool-card"><code>collect_runtime_evidence</code><p>Runtime declarations and environment evidence.</p></article>
+              <article class="tool-card"><code>inspect_dependency_blockers</code><p>Compatibility blockers in dependencies.</p></article>
+              <article class="tool-card"><code>inspect_ops_runtime</code><p>CI, Docker, and deployment runtime checks.</p></article>
+              <article class="tool-card"><code>inspect_source_compatibility</code><p>Source-level compatibility risk.</p></article>
+              <article class="tool-card"><code>compare_target_paths</code><p>Direct vs staged upgrade comparison.</p></article>
+              <article class="tool-card"><code>save_modernization_report</code><p>Writes the normalized report to disk.</p></article>
+              <article class="tool-card"><code>open_report_viewer</code><p>Starts the local viewer server and opens the viewer.</p></article>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-number">5</div>
+            <h3>Send a test prompt</h3>
+            <p>
+              Click Bob's message box, paste the exact prompt below, then send
+              it:
+            </p>
+            <pre class="code"><code>Analyze this repository for a Node 20 modernization path. Use the Modernization Architect workflow, save the final report, and open the report viewer.</code></pre>
+          </article>
+
+          <article class="step">
+            <div class="step-number">6</div>
+            <h3>Answer any scope questions</h3>
+            <p>
+              If Bob asks a follow-up question, answer it directly. The workflow
+              docs allow Bob to ask about:
+            </p>
+            <ul>
+              <li>the target Node version, if missing</li>
+              <li>a subdirectory, if the repo needs narrowing</li>
+              <li>whether you want the safest path or the fastest path</li>
+            </ul>
+          </article>
+
+          <article class="step">
+            <div class="step-number">7</div>
+            <h3>Watch the expected tool order</h3>
+            <ul>
+              <li>First: <span class="inline-code">discover_repo_scope</span></li>
+              <li>Then: <span class="inline-code">collect_runtime_evidence</span></li>
+              <li>Then: <span class="inline-code">inspect_dependency_blockers</span></li>
+              <li>Optional after that: <span class="inline-code">inspect_ops_runtime</span>, <span class="inline-code">inspect_source_compatibility</span>, <span class="inline-code">compare_target_paths</span></li>
+              <li>Near the end: <span class="inline-code">save_modernization_report</span></li>
+              <li>Viewer step: <span class="inline-code">open_report_viewer</span></li>
+            </ul>
+          </article>
+
+          <article class="step">
+            <div class="step-number">8</div>
+            <h3>Check the output artifacts</h3>
+            <p>
+              After Bob finishes, go back to Terminal and run:
+            </p>
+            <pre class="code"><code>sed -n '1,80p' reports/index.json
+sed -n '1,80p' reports/latest/report.json
+ls reports/history | tail -n 10</code></pre>
+            <p>
+              Pass condition: the manifest, latest report, and history folder
+              all show fresh saved data.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="artifacts">
+        <h2>Artifacts To Check</h2>
+        <div class="grid-3" style="margin-top:18px;">
+          <article class="mini-card">
+            <h3><span class="inline-code">reports/index.json</span></h3>
+            <p>
+              The manifest used by the viewer. It should contain
+              <span class="inline-code">latestReportPath</span> and a non-empty
+              <span class="inline-code">history</span> array after successful saves.
+            </p>
+          </article>
+          <article class="mini-card">
+            <h3><span class="inline-code">reports/latest/report.json</span></h3>
+            <p>
+              The latest saved report. The live viewer reads this through the
+              manifest.
+            </p>
+          </article>
+          <article class="mini-card">
+            <h3><span class="inline-code">reports/history/</span></h3>
+            <p>
+              History reports. A successful save should add a new JSON file whose
+              name matches the report ID.
+            </p>
+          </article>
+        </div>
+
+        <div class="callout">
+          <strong>What a valid generated report ID looks like</strong>
+          The current schema accepts IDs like
+          <span class="inline-code">guide-20260516T102714Z</span> or
+          <span class="inline-code">20260516T102714Z</span>. It does not accept
+          IDs like <span class="inline-code">test-1778920405745</span>.
+        </div>
+      </section>
+
+      <section class="section" id="caveats">
+        <h2>Known Caveats</h2>
+        <div class="steps">
+          <article class="step">
+            <div class="step-number">1</div>
+            <h3>The repo completion script is slightly stale</h3>
+            <p>
+              <span class="inline-code">scripts/test-dev1-completion.ts</span>
+              still creates a save-report ID using the old
+              <span class="inline-code">test-&lt;epoch&gt;</span> format. If you
+              run it unchanged, its save-report test will fail even though the
+              actual save tool works with the current schema-compliant ID format.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">2</div>
+            <h3>Port conflicts are normal during local testing</h3>
+            <p>
+              If you get <span class="inline-code">EADDRINUSE</span>, the port
+              is already occupied. Pick another one with
+              <span class="inline-code">VIEWER_PORT=4556</span>,
+              <span class="inline-code">VIEWER_PORT=4557</span>, or another free
+              port.
+            </p>
+          </article>
+
+          <article class="step">
+            <div class="step-number">3</div>
+            <h3>The direct MCP smoke test writes report artifacts</h3>
+            <p>
+              That is expected. The save tool is supposed to write
+              <span class="inline-code">reports/latest/report.json</span>,
+              <span class="inline-code">reports/history/&lt;reportId&gt;.json</span>,
+              and the manifest.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li><span class="inline-code">package.json</span></li>
+          <li><span class="inline-code">.bob/mcp.json</span></li>
+          <li><span class="inline-code">.bob/custom_modes.yaml</span></li>
+          <li><span class="inline-code">.bob/rules-modernization-architect/01-role.md</span></li>
+          <li><span class="inline-code">.bob/rules-modernization-architect/02-workflow.md</span></li>
+          <li><span class="inline-code">packages/mcp-server/src/index.ts</span></li>
+          <li><span class="inline-code">packages/mcp-server/src/tools/save-modernization-report.ts</span></li>
+          <li><span class="inline-code">packages/mcp-server/src/tools/open-report-viewer.ts</span></li>
+          <li><span class="inline-code">packages/shared/src/schemas/primitives.ts</span></li>
+          <li><span class="inline-code">apps/viewer/index.html</span> and <span class="inline-code">apps/viewer/app.js</span></li>
+          <li><span class="inline-code">packages/viewer-server/src/server.ts</span></li>
+          <li><span class="inline-code">fixtures/contracts/reports/valid-report.json</span></li>
+          <li><span class="inline-code">tests/contracts/*.test.ts</span></li>
+          <li>Direct verified commands in the current workspace:
+            <span class="inline-code">npm install</span>,
+            <span class="inline-code">npm run build</span>,
+            <span class="inline-code">npx vitest run</span>,
+            the direct MCP smoke block,
+            and the viewer route checks on a local viewer server.
+          </li>
+        </ul>
+        <p class="footer-note">
+          If the repo changes again, re-run the install, build, Vitest, MCP, and
+          viewer checks before updating this page so the instructions stay exact.
+        </p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
