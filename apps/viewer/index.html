@@ -1,67 +1,180 @@
 <!DOCTYPE html>
+<!--
+  Required DOM contract (technical_plan.md Section 14.1 + Section 16 Dev 3):
+  Every element id below must exist after boot, even when its tab is hidden:
+    #decision-title  #decision-summary  #decision-pills
+    #target-paths    #issues             #evidence
+    #execution-plan  #validation-checklist  #tool-trace
+    #history-select  #report-meta
+  Tab visibility uses the `hidden` attribute, which keeps the elements in
+  the DOM. Do not move these ids inside an element that gets detached.
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Modernization Navigator Viewer</title>
+    <title>Modernization Navigator</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="shell">
-      <aside class="sidebar">
-        <p class="eyebrow">Modernization Navigator</p>
-        <h1>Decision Viewer</h1>
-        <p class="sidebar-copy">
-          Review Bob’s recommendation, evidence, and rollout plan from the saved
-          report artifact.
-        </p>
-        <label class="history-picker" for="history-select">
-          <span>History</span>
-          <select id="history-select"></select>
-        </label>
-        <div class="meta-grid" id="report-meta"></div>
+    <div class="app">
+      <aside class="rail">
+        <div class="rail-brand">
+          <p class="eyebrow">Modernization</p>
+          <p class="brand-name">Navigator</p>
+        </div>
+
+        <nav class="rail-nav" aria-label="Sections">
+          <a class="rail-link" data-tab="overview" href="#overview">
+            <span>Overview</span>
+          </a>
+          <a class="rail-link" data-tab="issues" href="#issues">
+            <span>Issues</span>
+            <span class="rail-badge" data-count="issues">0</span>
+          </a>
+          <a class="rail-link" data-tab="evidence" href="#evidence">
+            <span>Evidence</span>
+            <span class="rail-badge" data-count="evidence">0</span>
+          </a>
+          <a class="rail-link" data-tab="plan" href="#plan">
+            <span>Plan</span>
+            <span class="rail-badge" data-count="plan">0</span>
+          </a>
+          <a class="rail-link" data-tab="validation" href="#validation">
+            <span>Validation</span>
+            <span class="rail-badge" data-count="validation">0</span>
+          </a>
+          <a class="rail-link" data-tab="trace" href="#trace">
+            <span>Tool trace</span>
+            <span class="rail-badge" data-count="trace">0</span>
+          </a>
+        </nav>
+
+        <div class="rail-foot">
+          <p class="muted small">Local report viewer</p>
+        </div>
       </aside>
 
-      <main class="main">
-        <section class="hero">
-          <div>
-            <p class="eyebrow">Bob Recommendation</p>
-            <h2 id="decision-title">Loading latest report...</h2>
-            <p id="decision-summary" class="hero-copy"></p>
+      <div class="content">
+        <header class="topbar">
+          <div class="topbar-title">
+            <p class="eyebrow">Recommendation</p>
+            <h1 id="decision-title">Loading…</h1>
           </div>
-          <div class="hero-pillbox" id="decision-pills"></div>
-        </section>
+          <label class="topbar-field" for="history-select">
+            <span class="field-label">Report</span>
+            <select id="history-select"></select>
+          </label>
+        </header>
 
-        <section class="panel">
-          <h3>Evaluated Target Paths</h3>
-          <div id="target-paths" class="grid cards"></div>
-        </section>
+        <main class="main">
+          <!-- Overview ------------------------------------------------ -->
+          <section class="panel" data-panel="overview">
+            <div class="stats" id="stats"></div>
 
-        <section class="panel">
-          <h3>Issues</h3>
-          <div id="issues" class="grid issues"></div>
-        </section>
+            <section class="card hero">
+              <p id="decision-summary" class="summary"></p>
+              <div id="decision-pills" class="pill-row"></div>
 
-        <section class="panel">
-          <h3>Evidence</h3>
-          <div id="evidence" class="grid compact-grid"></div>
-        </section>
+              <div id="decision-rationale" class="labeled" hidden>
+                <p class="label">Rationale</p>
+                <p class="rationale"></p>
+              </div>
 
-        <section class="panel">
-          <h3>Execution Plan</h3>
-          <div id="execution-plan" class="grid plan-grid"></div>
-        </section>
+              <div id="decision-extras" class="decision-block" hidden>
+                <div data-block="risks">
+                  <p class="subhead">Prioritized risks</p>
+                  <ul class="bullet-list"></ul>
+                </div>
+                <div data-block="solutions">
+                  <p class="subhead">Chosen solutions</p>
+                  <ul class="bullet-list"></ul>
+                </div>
+                <div data-block="tradeoffs">
+                  <p class="subhead">Tradeoffs</p>
+                  <ul class="bullet-list"></ul>
+                </div>
+              </div>
+            </section>
 
-        <section class="panel">
-          <h3>Validation Checklist</h3>
-          <div id="validation-checklist" class="grid compact-grid"></div>
-        </section>
+            <section class="card">
+              <h2 class="section-title">Evaluated target paths</h2>
+              <div id="target-paths" class="targets"></div>
+            </section>
 
-        <section class="panel">
-          <h3>Tool Trace</h3>
-          <div id="tool-trace" class="grid compact-grid"></div>
-        </section>
-      </main>
+            <section class="card">
+              <h2 class="section-title">Metadata</h2>
+              <dl id="report-meta" class="meta-list"></dl>
+            </section>
+          </section>
+
+          <!-- Issues -------------------------------------------------- -->
+          <section class="panel" data-panel="issues" hidden>
+            <section class="card">
+              <header class="panel-head">
+                <h2 class="section-title">Issues</h2>
+                <p class="muted small">
+                  Compatibility blockers detected for the target Node version.
+                </p>
+              </header>
+              <div id="issues" class="issues"></div>
+            </section>
+          </section>
+
+          <!-- Evidence ------------------------------------------------ -->
+          <section class="panel" data-panel="evidence" hidden>
+            <section class="card">
+              <header class="panel-head">
+                <h2 class="section-title">Runtime evidence</h2>
+                <p class="muted small">
+                  Files and configuration declaring or implying Node runtime
+                  versions.
+                </p>
+              </header>
+              <div id="evidence" class="evidence-grid"></div>
+            </section>
+          </section>
+
+          <!-- Plan ---------------------------------------------------- -->
+          <section class="panel" data-panel="plan" hidden>
+            <section class="card">
+              <header class="panel-head">
+                <h2 class="section-title">Execution plan</h2>
+                <p class="muted small">Ordered rollout steps Bob recommends.</p>
+              </header>
+              <ol id="execution-plan" class="plan"></ol>
+            </section>
+          </section>
+
+          <!-- Validation ---------------------------------------------- -->
+          <section class="panel" data-panel="validation" hidden>
+            <section class="card">
+              <header class="panel-head">
+                <h2 class="section-title">Validation checklist</h2>
+                <p class="muted small">
+                  Commands and expected outcomes that confirm the migration is
+                  safe.
+                </p>
+              </header>
+              <div id="validation-checklist" class="checklist"></div>
+            </section>
+          </section>
+
+          <!-- Trace --------------------------------------------------- -->
+          <section class="panel" data-panel="trace" hidden>
+            <section class="card">
+              <header class="panel-head">
+                <h2 class="section-title">Tool trace</h2>
+                <p class="muted small">
+                  MCP tool calls Bob made during this analysis and their
+                  outcomes.
+                </p>
+              </header>
+              <div id="tool-trace" class="tooltrace"></div>
+            </section>
+          </section>
+        </main>
+      </div>
     </div>
 
     <script src="./app.js"></script>

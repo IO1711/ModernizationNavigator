@@ -1,3 +1,14 @@
+/*
+  Viewer app logic. Two responsibilities:
+  1. Render a saved report into the DOM contract documented in
+     index.html (see technical_plan.md §14.1 and §16 for the source
+     of truth on required ids).
+  2. Provide tab navigation between the section panels without
+     unmounting any of the contract elements — tabs use the `hidden`
+     attribute so every required id stays in the DOM at all times.
+  No framework. No build step. Plain HTML/CSS/JS per §2 rule 8.
+*/
+
 const defaultConfig = {
   sampleMode: false,
   manifestPath: '/reports/index.json',
@@ -15,22 +26,25 @@ const elements = {
   decisionTitle: document.getElementById('decision-title'),
   decisionSummary: document.getElementById('decision-summary'),
   decisionPills: document.getElementById('decision-pills'),
+  decisionRationale: document.getElementById('decision-rationale'),
+  decisionExtras: document.getElementById('decision-extras'),
   targetPaths: document.getElementById('target-paths'),
   issues: document.getElementById('issues'),
   evidence: document.getElementById('evidence'),
   executionPlan: document.getElementById('execution-plan'),
   validationChecklist: document.getElementById('validation-checklist'),
-  toolTrace: document.getElementById('tool-trace')
+  toolTrace: document.getElementById('tool-trace'),
+  stats: document.getElementById('stats')
 };
 
+const TABS = ['overview', 'issues', 'evidence', 'plan', 'validation', 'trace'];
+
+// ----- URL + fetch helpers ---------------------------------------------------
+
 function resolveAgainst(baseUrl, relativePath) {
-  // Manifest paths come in two shapes in this project:
-  //  - "./reports/foo.json" — relative to the manifest's own URL
-  //    (used by the committed demo sample at apps/viewer/sample/)
-  //  - "reports/latest/foo.json" — relative to the project root, i.e.
-  //    server-absolute (what the MCP report-writer emits)
-  // Treat anything that doesn't start with "./" or "../" as server-absolute,
-  // so both Dev 1's live manifest and the demo sample resolve correctly.
+  // Manifest path conventions in this project:
+  //   "./reports/foo.json" — relative to the manifest URL (demo sample)
+  //   "reports/latest/foo.json" — project-root-relative (MCP writer)
   if (relativePath.startsWith('./') || relativePath.startsWith('../')) {
     return new URL(relativePath, baseUrl).toString();
   }
@@ -41,18 +55,19 @@ function resolveAgainst(baseUrl, relativePath) {
 
 async function fetchJson(url) {
   const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Failed to load ${url}: ${response.status}`);
-  }
-
+  if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
   return response.json();
 }
 
-function createEmptyState(message) {
-  const node = document.createElement('div');
-  node.className = 'empty';
-  node.textContent = message;
+// ----- DOM helpers -----------------------------------------------------------
+
+function el(tag, className, content) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (content === undefined || content === null) return node;
+  if (Array.isArray(content)) node.append(...content.filter(Boolean));
+  else if (content instanceof Node) node.append(content);
+  else node.textContent = String(content);
   return node;
 }
 
@@ -60,187 +75,433 @@ function clearElement(element) {
   element.replaceChildren();
 }
 
-function appendCompactCard(container, title, body) {
-  const card = document.createElement('article');
-  card.className = 'compact-card';
-  card.innerHTML = `<strong>${title}</strong><p>${body}</p>`;
-  container.append(card);
+function createEmptyState(message) {
+  return el('div', 'empty', message);
+}
+
+function bulletList(items) {
+  const ul = el('ul', 'bullet-list');
+  for (const item of items) ul.append(el('li', null, item));
+  return ul;
+}
+
+function codeBlock(commands) {
+  if (!commands || commands.length === 0) return null;
+  return el('pre', 'code-block', commands.map((c) => `$ ${c}`).join('\n'));
+}
+
+function tag(text, variant) {
+  return el('span', variant ? `tag ${variant}` : 'tag', text);
+}
+
+function formatDuration(startedAt, finishedAt) {
+  if (!startedAt || !finishedAt) return '';
+  const ms = new Date(finishedAt).getTime() - new Date(startedAt).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return '';
+  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(2)}s`;
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleString();
+  } catch {
+    return iso;
+  }
+}
+
+// ----- Tabs ------------------------------------------------------------------
+
+function setupTabs() {
+  const links = document.querySelectorAll('.rail-link[data-tab]');
+  const panels = document.querySelectorAll('.panel[data-panel]');
+
+  function activate(name) {
+    const target = TABS.includes(name) ? name : 'overview';
+    for (const link of links) {
+      link.classList.toggle('active', link.dataset.tab === target);
+    }
+    for (const panel of panels) {
+      panel.hidden = panel.dataset.panel !== target;
+    }
+    if (location.hash !== `#${target}`) {
+      history.replaceState(null, '', `#${target}`);
+    }
+  }
+
+  for (const link of links) {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      activate(link.dataset.tab);
+    });
+  }
+
+  window.addEventListener('hashchange', () => {
+    activate((location.hash || '#overview').slice(1));
+  });
+
+  const initial = (location.hash || '#overview').slice(1);
+  activate(initial);
+}
+
+function updateRailCounts(report) {
+  const counts = {
+    issues: (report.issues || []).length,
+    evidence: (report.runtimeEvidence || []).length,
+    plan: (report.bobExecutionPlan || []).length,
+    validation: (report.validationChecklist || []).length,
+    trace: (report.toolTrace || []).length
+  };
+  for (const [key, count] of Object.entries(counts)) {
+    const badge = document.querySelector(`.rail-badge[data-count="${key}"]`);
+    if (!badge) continue;
+    badge.textContent = String(count);
+    badge.classList.toggle('zero', count === 0);
+  }
+}
+
+// ----- Renderers -------------------------------------------------------------
+
+function renderStats(report) {
+  if (!elements.stats) return;
+  clearElement(elements.stats);
+  const stats = [
+    {
+      label: 'Target Node',
+      value: report.requestedTargetNodeVersion || '—',
+      foot:
+        (report.evaluatedTargetNodeVersions || []).length
+          ? `Evaluated: ${report.evaluatedTargetNodeVersions.join(', ')}`
+          : null
+    },
+    {
+      label: 'Issues',
+      value: (report.issues || []).length,
+      foot: (report.issues || []).length === 0 ? 'No blockers detected' : 'See Issues tab'
+    },
+    {
+      label: 'Evidence',
+      value: (report.runtimeEvidence || []).length,
+      foot: 'Runtime declarations'
+    },
+    {
+      label: 'Plan steps',
+      value: (report.bobExecutionPlan || []).length,
+      foot: 'Recommended rollout order'
+    },
+    {
+      label: 'Tool calls',
+      value: (report.toolTrace || []).length,
+      foot: traceSummary(report.toolTrace || [])
+    }
+  ];
+  for (const stat of stats) {
+    const card = el('div', 'stat');
+    card.append(el('div', 'stat-label', stat.label));
+    card.append(el('div', 'stat-value', String(stat.value)));
+    if (stat.foot) card.append(el('div', 'stat-foot', stat.foot));
+    elements.stats.append(card);
+  }
+}
+
+function traceSummary(trace) {
+  if (!trace.length) return null;
+  const ok = trace.filter((t) => t.status === 'success').length;
+  return `${ok}/${trace.length} succeeded`;
 }
 
 function renderMeta(report) {
   clearElement(elements.reportMeta);
-
-  const items = [
-    ['Report ID', report.reportId],
-    ['Created At', report.createdAt],
-    ['Repo Root', report.repoRoot],
-    ['Target Node', report.requestedTargetNodeVersion],
-    ['Package Manager', report.detectedPackageManager],
-    ['Offline Mode', report.offlineMode ? 'Yes' : 'No']
+  const rows = [
+    ['Report ID', report.reportId, true],
+    ['Created', formatDate(report.createdAt), false],
+    ['Repo', report.repoRoot, true],
+    ['Subdirectory', report.subdirectory || '—', true],
+    ['Target Node', report.requestedTargetNodeVersion, false],
+    ['Evaluated', (report.evaluatedTargetNodeVersions || []).join(', ') || '—', false],
+    ['Package manager', report.detectedPackageManager, false],
+    ['Offline mode', report.offlineMode ? 'Yes' : 'No', false]
   ];
-
-  items.forEach(([label, value]) => {
-    const item = document.createElement('div');
-    item.className = 'meta-item';
-    item.innerHTML = `<strong>${label}</strong><small>${value || 'n/a'}</small>`;
-    elements.reportMeta.append(item);
-  });
+  for (const [label, value, mono] of rows) {
+    elements.reportMeta.append(el('dt', null, label));
+    elements.reportMeta.append(el('dd', mono ? 'mono' : null, value || '—'));
+  }
 }
 
 function renderDecision(report) {
-  elements.decisionTitle.textContent = report.bobDecision.selectedTargetPath;
-  elements.decisionSummary.textContent = report.bobDecision.summary;
-  clearElement(elements.decisionPills);
+  const decision = report.bobDecision || {};
+  elements.decisionTitle.textContent = decision.selectedTargetPath || '—';
+  elements.decisionSummary.textContent = decision.summary || '';
 
-  [
-    `Requested: Node ${report.requestedTargetNodeVersion}`,
-    `Evaluated: ${report.evaluatedTargetNodeVersions.join(', ')}`,
-    `Risks: ${report.bobDecision.prioritizedRisks.length}`,
-    `Chosen solutions: ${report.bobDecision.chosenSolutions.length}`
-  ].forEach((text) => {
-    const pill = document.createElement('div');
-    pill.className = 'pill';
-    pill.textContent = text;
-    elements.decisionPills.append(pill);
-  });
+  clearElement(elements.decisionPills);
+  const pills = [];
+  if (report.requestedTargetNodeVersion) {
+    pills.push({ text: `Requested · Node ${report.requestedTargetNodeVersion}`, strong: true });
+  }
+  if (report.evaluatedTargetNodeVersions?.length) {
+    pills.push({ text: `Evaluated · ${report.evaluatedTargetNodeVersions.join(', ')}` });
+  }
+  if (report.detectedPackageManager) {
+    pills.push({ text: report.detectedPackageManager });
+  }
+  if (typeof report.offlineMode === 'boolean') {
+    pills.push({ text: report.offlineMode ? 'Offline' : 'Online' });
+  }
+  for (const p of pills) {
+    elements.decisionPills.append(el('span', p.strong ? 'pill pill-strong' : 'pill', p.text));
+  }
+
+  if (decision.rationale) {
+    elements.decisionRationale.hidden = false;
+    elements.decisionRationale.querySelector('.rationale').textContent = decision.rationale;
+  } else {
+    elements.decisionRationale.hidden = true;
+  }
+
+  const blocks = {
+    risks: decision.prioritizedRisks || [],
+    solutions: decision.chosenSolutions || [],
+    tradeoffs: decision.tradeoffs || []
+  };
+  const anyShown = Object.values(blocks).some((arr) => arr.length > 0);
+  elements.decisionExtras.hidden = !anyShown;
+  for (const [key, items] of Object.entries(blocks)) {
+    const block = elements.decisionExtras.querySelector(`[data-block="${key}"]`);
+    const ul = block.querySelector('ul');
+    clearElement(ul);
+    if (items.length === 0) {
+      block.hidden = true;
+    } else {
+      block.hidden = false;
+      for (const item of items) ul.append(el('li', null, item));
+    }
+  }
 }
 
 function renderTargetPaths(report) {
   clearElement(elements.targetPaths);
-
-  const pathCards = report.evaluatedTargetNodeVersions.map((version, index) => {
-    const card = document.createElement('article');
-    card.className = 'card';
-    const isSelected = report.bobDecision.selectedTargetPath.includes(version);
-    card.innerHTML = `
-      <strong>Target ${index + 1}</strong>
-      <p>Node ${version}</p>
-      <div class="score-row">
-        <span class="score">${isSelected ? 'Selected by Bob' : 'Evaluated option'}</span>
-      </div>
-    `;
-    return card;
-  });
-
-  if (pathCards.length === 0) {
-    elements.targetPaths.append(createEmptyState('No evaluated target paths were saved.'));
+  const versions = report.evaluatedTargetNodeVersions || [];
+  if (versions.length === 0) {
+    elements.targetPaths.append(createEmptyState('No target paths evaluated.'));
     return;
   }
-
-  pathCards.forEach((card) => elements.targetPaths.append(card));
+  const requested = String(report.requestedTargetNodeVersion ?? '');
+  for (const version of versions) {
+    const isRequested = String(version) === requested;
+    const card = el('article', isRequested ? 'target requested' : 'target');
+    card.append(el('strong', null, `Node ${version}`));
+    card.append(
+      el('span', isRequested ? 'badge badge-accent' : 'badge', isRequested ? 'Requested' : 'Evaluated')
+    );
+    elements.targetPaths.append(card);
+  }
 }
 
 function renderIssues(report) {
   clearElement(elements.issues);
-
-  if (report.issues.length === 0) {
-    elements.issues.append(createEmptyState('No issues were recorded in this report.'));
+  const issues = report.issues || [];
+  if (issues.length === 0) {
+    elements.issues.append(createEmptyState('No issues recorded.'));
     return;
   }
+  for (const issue of issues) {
+    elements.issues.append(buildIssueCard(issue));
+  }
+}
 
-  report.issues.forEach((issue) => {
-    const card = document.createElement('article');
-    card.className = 'issue-card';
-    const evidenceCount = issue.evidence.length;
-    const validationCount = issue.validationSteps.length;
-    card.innerHTML = `
-      <div class="issue-category">${issue.category}</div>
-      <strong>${issue.title}</strong>
-      <p>${issue.issue}</p>
-      <p>${issue.defaultTechnicalRecommendation}</p>
-      <div class="score-row">
-        <span class="score">${evidenceCount} evidence item${evidenceCount === 1 ? '' : 's'}</span>
-        <span class="score">${validationCount} validation step${validationCount === 1 ? '' : 's'}</span>
-      </div>
-    `;
-    elements.issues.append(card);
-  });
+function buildIssueCard(issue) {
+  const card = el('article', 'issue');
+
+  const head = el('div', 'issue-head');
+  head.append(tag(issue.category));
+  head.append(el('h3', null, issue.title));
+  card.append(head);
+
+  if (issue.issue) card.append(buildLabeled('Problem', issue.issue));
+  if (issue.incompatibilityReason) card.append(buildLabeled('Why incompatible', issue.incompatibilityReason));
+  if (issue.defaultTechnicalRecommendation) {
+    card.append(buildLabeled('Recommendation', issue.defaultTechnicalRecommendation));
+  }
+
+  if (issue.affectedFiles?.length) {
+    const section = el('div', 'issue-section');
+    section.append(el('h4', null, 'Affected files'));
+    const files = el('div', 'file-list');
+    for (const file of issue.affectedFiles) files.append(el('code', 'mono', file));
+    section.append(files);
+    card.append(section);
+  }
+
+  if (issue.evidence?.length) {
+    const section = el('div', 'issue-section');
+    section.append(el('h4', null, 'Evidence'));
+    const rows = el('div', 'evidence-rows');
+    for (const ev of issue.evidence) rows.append(buildEvidenceRow(ev));
+    section.append(rows);
+    card.append(section);
+  }
+
+  if (issue.recommendedCommands?.length) {
+    const section = el('div', 'issue-section');
+    section.append(el('h4', null, 'Commands'));
+    const block = codeBlock(issue.recommendedCommands);
+    if (block) section.append(block);
+    card.append(section);
+  }
+
+  if (issue.validationSteps?.length) {
+    const section = el('div', 'issue-section');
+    section.append(el('h4', null, 'Validation'));
+    for (const step of issue.validationSteps) section.append(buildValidationStep(step));
+    card.append(section);
+  }
+
+  if (issue.alternativeSolutions?.length) {
+    const section = el('div', 'issue-section');
+    section.append(el('h4', null, 'Alternatives'));
+    for (const alt of issue.alternativeSolutions) section.append(buildAlternative(alt));
+    card.append(section);
+  }
+
+  return card;
+}
+
+function buildLabeled(label, body) {
+  const wrap = el('div', 'labeled');
+  wrap.append(el('p', 'label', label));
+  wrap.append(el('p', null, body));
+  return wrap;
+}
+
+function buildEvidenceRow(ev) {
+  const row = el('div', 'evidence-row');
+  const loc = ev.line ? `${ev.filePath}:${ev.line}` : ev.filePath;
+  row.append(el('code', 'mono', loc || ev.kind || 'evidence'));
+  if (ev.summary) row.append(el('p', null, ev.summary));
+  if (ev.snippet) row.append(el('pre', 'code-block', ev.snippet));
+  return row;
+}
+
+function buildValidationStep(step) {
+  const wrap = el('div', 'labeled');
+  wrap.append(el('strong', null, step.title));
+  const block = codeBlock(step.commands);
+  if (block) wrap.append(block);
+  if (step.expectedResult) wrap.append(el('p', 'muted small', `Expected: ${step.expectedResult}`));
+  return wrap;
+}
+
+function buildAlternative(alt) {
+  const wrap = el('div', 'alt');
+  wrap.append(el('strong', null, `#${alt.rank} ${alt.title}`));
+  if (alt.targetVersionRange) wrap.append(el('p', 'muted small', `Targets: ${alt.targetVersionRange}`));
+  if (alt.summary) wrap.append(el('p', null, alt.summary));
+  if (alt.rationale) wrap.append(el('p', 'muted small', alt.rationale));
+  if (alt.tradeoffs?.length) wrap.append(bulletList(alt.tradeoffs));
+  const block = codeBlock(alt.commands);
+  if (block) wrap.append(block);
+  return wrap;
 }
 
 function renderEvidence(report) {
   clearElement(elements.evidence);
-
-  if (report.runtimeEvidence.length === 0) {
-    elements.evidence.append(createEmptyState('No runtime evidence was captured.'));
+  const entries = report.runtimeEvidence || [];
+  if (entries.length === 0) {
+    elements.evidence.append(createEmptyState('No runtime evidence captured.'));
     return;
   }
-
-  report.runtimeEvidence.forEach((entry) => {
-    appendCompactCard(
-      elements.evidence,
-      `${entry.kind} · ${entry.filePath}`,
-      `${entry.source}: ${entry.value}`
-    );
-  });
+  for (const ev of entries) {
+    const card = el('div', 'evidence-card');
+    const row1 = el('div', 'row1');
+    row1.append(tag(ev.kind));
+    row1.append(el('code', 'mono', ev.filePath));
+    card.append(row1);
+    card.append(el('div', 'value', ev.value));
+    if (ev.source) card.append(el('p', 'muted small', `Source: ${ev.source}`));
+    elements.evidence.append(card);
+  }
 }
 
 function renderExecutionPlan(report) {
   clearElement(elements.executionPlan);
-
-  if (report.bobExecutionPlan.length === 0) {
-    elements.executionPlan.append(createEmptyState('No execution plan items were saved.'));
+  const plan = report.bobExecutionPlan || [];
+  if (plan.length === 0) {
+    elements.executionPlan.append(createEmptyState('No execution plan saved.'));
     return;
   }
+  const sorted = [...plan].sort((a, b) => a.order - b.order);
+  for (const item of sorted) {
+    const li = el('li', 'plan-item');
 
-  report.bobExecutionPlan
-    .sort((left, right) => left.order - right.order)
-    .forEach((item) => {
-      const card = document.createElement('article');
-      card.className = 'plan-card';
-      card.innerHTML = `
-        <strong>${item.order}. ${item.title}</strong>
-        <p>${item.phase}</p>
-      `;
+    const head = el('div', 'plan-head');
+    head.append(el('span', 'plan-num', String(item.order)));
+    const headBody = el('div');
+    headBody.append(el('strong', null, item.title));
+    if (item.phase) headBody.append(el('p', null, `Phase: ${item.phase}`));
+    head.append(headBody);
+    li.append(head);
 
-      const list = document.createElement('ul');
-      list.className = 'list';
-      item.actions.forEach((action) => {
-        const bullet = document.createElement('li');
-        bullet.textContent = action;
-        list.append(bullet);
-      });
-      card.append(list);
-      elements.executionPlan.append(card);
-    });
+    if (item.actions?.length) li.append(bulletList(item.actions));
+
+    if (item.dependsOn?.length) {
+      const wrap = el('div', 'labeled');
+      wrap.append(el('p', 'label', 'Depends on'));
+      const list = el('div', 'dep-list');
+      for (const dep of item.dependsOn) list.append(el('code', 'mono', dep));
+      wrap.append(list);
+      li.append(wrap);
+    }
+
+    if (item.validation?.length) {
+      const wrap = el('div', 'labeled');
+      wrap.append(el('p', 'label', 'Validation'));
+      wrap.append(bulletList(item.validation));
+      li.append(wrap);
+    }
+
+    elements.executionPlan.append(li);
+  }
 }
 
 function renderValidationChecklist(report) {
   clearElement(elements.validationChecklist);
-
-  if (report.validationChecklist.length === 0) {
-    elements.validationChecklist.append(
-      createEmptyState('No validation checklist items were saved.')
-    );
+  const items = report.validationChecklist || [];
+  if (items.length === 0) {
+    elements.validationChecklist.append(createEmptyState('No validation checklist saved.'));
     return;
   }
-
-  report.validationChecklist.forEach((item) => {
-    appendCompactCard(
-      elements.validationChecklist,
-      item.title,
-      `${item.expectedResult} Commands: ${item.commands.join(' | ')}`
-    );
-  });
+  for (const item of items) {
+    const card = el('article', 'check');
+    card.append(el('strong', null, item.title));
+    const block = codeBlock(item.commands);
+    if (block) card.append(block);
+    if (item.expectedResult) card.append(el('p', 'muted small', `Expected: ${item.expectedResult}`));
+    elements.validationChecklist.append(card);
+  }
 }
 
 function renderToolTrace(report) {
   clearElement(elements.toolTrace);
-
-  if (report.toolTrace.length === 0) {
-    elements.toolTrace.append(createEmptyState('No tool trace entries were saved.'));
+  const trace = report.toolTrace || [];
+  if (trace.length === 0) {
+    elements.toolTrace.append(createEmptyState('No tool trace recorded.'));
     return;
   }
-
-  report.toolTrace.forEach((entry) => {
-    appendCompactCard(
-      elements.toolTrace,
-      `${entry.toolName} · ${entry.status}`,
-      `${entry.resultSummary} (${entry.startedAt} -> ${entry.finishedAt})`
-    );
-  });
+  for (const entry of trace) {
+    const row = el('div', 'trace-row');
+    row.append(el('span', `status status-${entry.status || 'skipped'}`, entry.status || 'unknown'));
+    row.append(el('code', 'trace-name', entry.toolName));
+    const duration = formatDuration(entry.startedAt, entry.finishedAt);
+    const detail = [entry.purpose, entry.resultSummary, duration].filter(Boolean).join(' · ');
+    row.append(el('span', 'trace-info', detail));
+    elements.toolTrace.append(row);
+  }
 }
 
 function renderReport(report) {
+  renderStats(report);
   renderMeta(report);
   renderDecision(report);
   renderTargetPaths(report);
@@ -249,11 +510,13 @@ function renderReport(report) {
   renderExecutionPlan(report);
   renderValidationChecklist(report);
   renderToolTrace(report);
+  updateRailCounts(report);
 }
+
+// ----- History selector + boot ----------------------------------------------
 
 function buildHistoryOptions(manifest) {
   clearElement(elements.historySelect);
-
   manifest.history.forEach((entry, index) => {
     const option = document.createElement('option');
     option.value = entry.reportPath;
@@ -268,25 +531,22 @@ async function loadReportFromPath(reportPath, manifestUrl) {
 }
 
 async function boot() {
+  setupTabs();
+
   const manifestPath = config.sampleMode ? config.sampleManifestPath : config.manifestPath;
   const manifestUrl = resolveAgainst(window.location.href, manifestPath);
   const manifest = await fetchJson(manifestUrl);
 
   buildHistoryOptions(manifest);
 
-  const initialPath =
-    manifest.latestReportPath || manifest.history[0]?.reportPath || null;
-
-  if (!initialPath) {
-    throw new Error('Report manifest is empty.');
-  }
+  const initialPath = manifest.latestReportPath || manifest.history[0]?.reportPath || null;
+  if (!initialPath) throw new Error('Report manifest is empty.');
 
   elements.historySelect.value = manifest.history[0]?.reportPath || initialPath;
   renderReport(await loadReportFromPath(initialPath, manifestUrl));
 
   elements.historySelect.addEventListener('change', async (event) => {
-    const nextPath = event.target.value;
-    renderReport(await loadReportFromPath(nextPath, manifestUrl));
+    renderReport(await loadReportFromPath(event.target.value, manifestUrl));
   });
 }
 
