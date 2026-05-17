@@ -2,14 +2,63 @@ import fs from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
 
-import { getViewerPort, getViewerUrl, resolveProjectFilePath, resolveViewerAssetPath, VIEWER_HOST } from './config';
+import {
+  getViewerPort,
+  getViewerUrl,
+  resolveViewerAssetPath,
+  resolveWorkspaceFilePath,
+  VIEWER_HOST
+} from './config';
 
 type ViewerServerState = {
   server: http.Server;
   port: number;
+  workspaceRoot: string;
 };
 
 let viewerServerState: ViewerServerState | null = null;
+
+function createViewerHttpServer(workspaceRoot: string): http.Server {
+  return http.createServer((request, response) => {
+    void handleRequest(request, response, workspaceRoot);
+  });
+}
+
+function isAddressInfo(
+  address: string | import('node:net').AddressInfo | null
+): address is import('node:net').AddressInfo {
+  return address !== null && typeof address !== 'string';
+}
+
+function isPortInUseError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && (error as NodeJS.ErrnoException).code === 'EADDRINUSE';
+}
+
+async function listenOnPort(server: http.Server, port: number): Promise<number> {
+  await new Promise<void>((resolve, reject) => {
+    const handleError = (error: Error): void => {
+      server.off('listening', handleListening);
+      reject(error);
+    };
+
+    const handleListening = (): void => {
+      server.off('error', handleError);
+      resolve();
+    };
+
+    server.once('error', handleError);
+    server.once('listening', handleListening);
+    server.listen(port, VIEWER_HOST);
+  });
+
+  const address = server.address();
+
+  if (!isAddressInfo(address)) {
+    throw new Error('Viewer server did not expose a TCP address after startup.');
+  }
+
+  return address.port;
+}
 
 function getContentType(filePath: string): string {
   if (filePath.endsWith('.html')) {
@@ -59,7 +108,8 @@ async function serveFile(
 
 async function handleRequest(
   request: http.IncomingMessage,
-  response: http.ServerResponse
+  response: http.ServerResponse,
+  workspaceRoot: string
 ): Promise<void> {
   const url = new URL(request.url ?? '/', getViewerUrl());
   const pathname = decodeURIComponent(url.pathname);
@@ -87,8 +137,11 @@ async function handleRequest(
   }
 
   if (pathname.startsWith('/reports/')) {
-    const reportsRoot = resolveProjectFilePath('reports');
-    const reportFilePath = path.resolve(resolveProjectFilePath('.'), pathname.slice(1));
+    const reportsRoot = resolveWorkspaceFilePath(workspaceRoot, 'reports');
+    const reportFilePath = path.resolve(
+      resolveWorkspaceFilePath(workspaceRoot, '.'),
+      pathname.slice(1)
+    );
     await serveFile(response, reportFilePath, reportsRoot);
     return;
   }
@@ -97,31 +150,44 @@ async function handleRequest(
   response.end('Not Found');
 }
 
-export async function startViewerServer(): Promise<{
+export async function startViewerServer(options?: {
+  workspaceRoot?: string;
+}): Promise<{
   url: string;
   status: 'started' | 'reused';
 }> {
+  const workspaceRoot = path.resolve(options?.workspaceRoot ?? process.cwd());
+
   if (viewerServerState) {
-    return {
-      url: getViewerUrl(viewerServerState.port),
-      status: 'reused'
-    };
+    if (viewerServerState.workspaceRoot !== workspaceRoot) {
+      await stopViewerServer();
+    } else {
+      return {
+        url: getViewerUrl(viewerServerState.port),
+        status: 'reused'
+      };
+    }
   }
 
-  const port = getViewerPort();
-  const server = http.createServer((request, response) => {
-    void handleRequest(request, response);
-  });
+  const preferredPort = getViewerPort();
+  let server = createViewerHttpServer(workspaceRoot);
+  let boundPort: number;
 
-  await new Promise<void>((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(port, VIEWER_HOST, () => resolve());
-  });
+  try {
+    boundPort = await listenOnPort(server, preferredPort);
+  } catch (error) {
+    if (!isPortInUseError(error)) {
+      throw error;
+    }
 
-  viewerServerState = { server, port };
+    server = createViewerHttpServer(workspaceRoot);
+    boundPort = await listenOnPort(server, 0);
+  }
+
+  viewerServerState = { server, port: boundPort, workspaceRoot };
 
   return {
-    url: getViewerUrl(port),
+    url: getViewerUrl(boundPort),
     status: 'started'
   };
 }

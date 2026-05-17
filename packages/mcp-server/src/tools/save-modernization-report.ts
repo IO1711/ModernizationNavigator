@@ -7,6 +7,7 @@ import {
 } from '@modernization-navigator/shared';
 
 import { updateReportManifest, writeHistoryReport, writeLatestReport } from '../report-writer';
+import { registerSavedReportPath } from '../viewer-runtime';
 
 export async function saveModernizationReport(
   input: SaveModernizationReportInput
@@ -17,7 +18,7 @@ export async function saveModernizationReport(
   // Write history and update the manifest BEFORE overwriting `latest`.
   // If a later step fails, `latest` still points to the previous valid
   // report instead of a half-saved one the viewer can't reconcile.
-  const historyPath = await writeHistoryReport(report);
+  const historyPath = await writeHistoryReport(report, report.repoRoot);
 
   await updateReportManifest({
     reportId: report.reportId,
@@ -25,9 +26,11 @@ export async function saveModernizationReport(
     reportPath: historyPath,
     requestedTargetNodeVersion: report.requestedTargetNodeVersion,
     subdirectory: report.subdirectory
-  });
+  }, report.repoRoot);
 
-  const reportPath = await writeLatestReport(report);
+  const reportPath = await writeLatestReport(report, report.repoRoot);
+  registerSavedReportPath(historyPath, report.repoRoot);
+  registerSavedReportPath(reportPath, report.repoRoot);
 
   return saveModernizationReportResultSchema.parse({
     reportId: report.reportId,

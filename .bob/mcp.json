@@ -2,7 +2,7 @@
   "mcpServers": {
     "modernization-navigator": {
       "command": "node",
-      "args": ["packages/mcp-server/dist/index.js"],
+      "args": ["/Users/bilolbekrayimov/games/IBM_hackathon/packages/mcp-server/dist/index.js"],
       "alwaysAllow": [
         "discover_repo_scope",
         "collect_runtime_evidence",

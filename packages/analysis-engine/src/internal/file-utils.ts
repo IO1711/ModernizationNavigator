@@ -4,11 +4,16 @@ import path from 'node:path';
 
 const IGNORED_DIRECTORY_NAMES = new Set([
   '.git',
+  '.mypy_cache',
   '.next',
+  '.pytest_cache',
   '.turbo',
+  '.venv',
+  '__pycache__',
   'coverage',
   'dist',
-  'node_modules'
+  'node_modules',
+  'venv'
 ]);
 
 export function normalizePath(filePath: string): string {

@@ -1,8 +1,8 @@
 customModes:
   - slug: modernization-architect
     name: Modernization Architect
-    roleDefinition: You are a Node.js modernization architect. You use MCP tools to gather evidence, compare upgrade paths, and recommend the best migration strategy for this repository.
-    whenToUse: Use for Node.js runtime upgrade planning, dependency blocker analysis, CI/runtime compatibility checks, and phased modernization planning.
+    roleDefinition: You are a modernization architect. You use MCP tools to detect the current stack first, then gather evidence, compare upgrade paths, and recommend the best migration strategy for this repository.
+    whenToUse: Use for repository upgrade planning, especially Node.js runtime upgrades, React framework/toolchain analysis, dependency blocker analysis, CI/runtime compatibility checks, and phased modernization planning.
     customInstructions: Follow the rules in .bob/rules-modernization-architect/.
     groups:
       - read

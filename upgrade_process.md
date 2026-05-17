@@ -59,20 +59,33 @@ Implement the first framework upgrade slice from [upgrade_plan.md](/Users/bilolb
 10. Verified the implementation:
    - `npm run typecheck` passed
    - `npm test` passed with all test files green
+11. Updated Bob's checked-in mode and generated mode source so generic upgrade requests discover the current framework and language before asking version-specific questions.
+12. Added a regression test that locks in the stack-first Bob workflow and keeps `.bob` files in sync with the generated mode source.
+13. Added dual-mode viewer support for opening saved v2 reports, including report-aware viewer URLs and automatic manifest selection for `report-v2` paths.
+14. Implemented the next planned framework slice for Python:
+   - added PyPI provider support beside npm and OSV providers
+   - added Python framework rules for FastAPI, Django, and Flask
+   - added Python project detection for `pyproject.toml`, `requirements*.txt`, `Pipfile`, `poetry.lock`, `uv.lock`, and `manage.py`
+15. Added Python-specific v2 analysis coverage:
+   - framework-aware detection for FastAPI, Django, and Flask
+   - Python runtime evidence from `requires-python`, `.python-version`, `runtime.txt`, Dockerfiles, deployment files, and GitHub Actions
+   - framework dependency findings for legacy Django and Flask majors plus pre-modern FastAPI baselines
+   - platform findings for ASGI server gaps, development-server deployment commands, and runtime version drift
+   - source-risk findings for `uvicorn ... reload=True`, Flask `debug=True`, and Django `DEBUG = True`
+16. Fixed the Python adapter routing so Django and Flask descriptors resolve back into the Python lane instead of falling through to the Node adapter.
+17. Added regression coverage for the Python lane, including nested FastAPI discovery with repo-level GitHub Actions evidence and Django/Flask framework-specific findings.
 
 ### In Progress
 
-1. No active implementation work remains in the React slice.
+1. No active implementation work remains in the Python slice.
 
 ### Pending
 
-1. Dual-mode viewer support for rendering v1 and v2 reports in the same UI.
-2. Additional framework adapters in the planned order:
-   - Python frameworks
+1. Additional framework adapters in the planned order:
    - Spring
    - Flutter
    - SwiftUI
-3. Bob mode updates after the v2 path is fully established.
+2. Further Bob mode refinement after more framework adapters are in place.
 
 ### Notes
 

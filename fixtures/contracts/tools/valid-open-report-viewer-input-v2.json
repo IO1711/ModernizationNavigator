@@ -1,5 +1,5 @@
 {
-  "reportPath": "reports/latest/report.json",
+  "reportPath": "reports/latest/report-v2.json",
   "repoRoot": "/workspace/demo-modernization-app",
   "autoOpenViewer": true
 }

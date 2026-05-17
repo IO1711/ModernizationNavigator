@@ -24,6 +24,32 @@ export interface NpmRegistryProvider {
   ): Promise<NpmPackageMetadata | null>;
 }
 
+export type PyPIPackageFileMetadata = {
+  filename?: string;
+  requires_python?: string | null;
+  yanked?: boolean;
+  packagetype?: string;
+};
+
+export type PyPIPackageVersionMetadata = {
+  info?: {
+    name?: string;
+    version?: string;
+    requires_python?: string | null;
+    summary?: string;
+  };
+  urls?: PyPIPackageFileMetadata[];
+  releases?: Record<string, PyPIPackageFileMetadata[]>;
+};
+
+export interface PyPIProvider {
+  fetchPackageMetadata(
+    packageName: string,
+    version?: string,
+    options?: ProviderRequestOptions
+  ): Promise<PyPIPackageVersionMetadata | null>;
+}
+
 export type OsvQueryResult = {
   vulns?: Array<{
     id?: string;

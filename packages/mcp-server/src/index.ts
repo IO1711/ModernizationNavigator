@@ -67,7 +67,7 @@ import {
   buildBobMcpConfig,
   DEFAULT_MCP_COMMAND,
   resolveBobMcpConfigPath,
-  writeBobMcpConfig
+  setupBobRepository
 } from './install-config';
 
 type ToolDefinition = {
@@ -130,7 +130,7 @@ export const toolDefinitions: ToolDefinition[] = [
   {
     name: OPEN_REPORT_VIEWER,
     description:
-      'Start the local viewer server (if needed) and open the saved report in the browser.',
+      'Start the local viewer server (if needed) and open the saved report in the browser for the active repo root.',
     inputSchema: openReportViewerInputSchema,
     handler: (input) => openReportViewer(input as OpenReportViewerInput)
   },
@@ -198,7 +198,7 @@ function printCliHelp(executableName: string): void {
   console.log(`Usage:
   ${executableName}                     Start the MCP server over stdio
   ${executableName} serve               Start the MCP server over stdio
-  ${executableName} setup [options]     Write .bob/mcp.json for a repo
+  ${executableName} setup [options]     Write Bob MCP and mode files for a repo
   ${executableName} print-config        Print a reusable .bob/mcp.json payload
 
 Options for setup / print-config:
@@ -286,12 +286,14 @@ async function runSetupCommand(argv: string[]): Promise<void> {
     return;
   }
 
-  const result = await writeBobMcpConfig(options.repoRoot, {
+  const result = await setupBobRepository(options.repoRoot, {
     command: options.command,
     args: options.args
   });
 
-  console.log(`Wrote ${result.configPath}`);
+  console.log(`Wrote ${result.mcpConfigPath}`);
+  console.log(`Wrote ${result.customModesPath}`);
+  console.log(`Wrote ${result.rulesDirectoryPath}`);
 }
 
 function runPrintConfigCommand(argv: string[]): void {

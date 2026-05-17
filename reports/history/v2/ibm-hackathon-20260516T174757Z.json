@@ -1,0 +1,693 @@
+{
+  "reportVersion": "v2",
+  "reportId": "ibm-hackathon-20260516T174757Z",
+  "createdAt": "2026-05-16T17:47:57.036Z",
+  "repoRoot": "/Users/bilolbekrayimov/games/IBM_hackathon",
+  "stackProfile": {
+    "ecosystem": "node",
+    "framework": "node",
+    "language": "typescript",
+    "runtimeName": "node",
+    "dependencyManager": "pnpm",
+    "buildSystem": "tsc"
+  },
+  "projectDescriptors": [
+    {
+      "rootPath": ".",
+      "ecosystem": "node",
+      "framework": "node",
+      "language": "typescript",
+      "runtimeName": "node",
+      "dependencyManager": "pnpm",
+      "buildSystem": "tsc",
+      "confidence": 0.62,
+      "markers": [
+        "file:package.json"
+      ]
+    }
+  ],
+  "requestedTargetVersion": "20",
+  "evaluatedTargetVersions": [
+    "20",
+    "18"
+  ],
+  "offlineMode": false,
+  "externalDataStatus": {
+    "sources": [
+      {
+        "source": "npm-registry",
+        "status": "used",
+        "notes": []
+      }
+    ],
+    "notes": []
+  },
+  "toolTrace": [
+    {
+      "toolName": "discover_project_stack",
+      "purpose": "Detect workspace scope and project stack",
+      "status": "success",
+      "startedAt": "2026-05-16T17:47:29.498Z",
+      "finishedAt": "2026-05-16T17:47:29.498Z",
+      "resultSummary": "Detected Node.js TypeScript monorepo with pnpm"
+    },
+    {
+      "toolName": "collect_environment_evidence",
+      "purpose": "Gather runtime evidence from configuration files",
+      "status": "success",
+      "startedAt": "2026-05-16T17:47:36.911Z",
+      "finishedAt": "2026-05-16T17:47:36.911Z",
+      "resultSummary": "Found Docker and deployment configurations in test fixtures"
+    },
+    {
+      "toolName": "inspect_framework_dependencies",
+      "purpose": "Check dependency compatibility with Node 20",
+      "status": "success",
+      "startedAt": "2026-05-16T17:47:42.721Z",
+      "finishedAt": "2026-05-16T17:47:42.721Z",
+      "resultSummary": "No dependency blockers detected"
+    },
+    {
+      "toolName": "inspect_platform_config",
+      "purpose": "Inspect CI, Docker, and deployment configurations",
+      "status": "success",
+      "startedAt": "2026-05-16T17:47:46.880Z",
+      "finishedAt": "2026-05-16T17:47:46.880Z",
+      "resultSummary": "Found 3 Docker configuration mismatches in test fixtures"
+    },
+    {
+      "toolName": "inspect_source_risks",
+      "purpose": "Analyze source code for deprecated APIs and module issues",
+      "status": "success",
+      "startedAt": "2026-05-16T17:47:52.262Z",
+      "finishedAt": "2026-05-16T17:47:52.262Z",
+      "resultSummary": "Found 4 source compatibility issues in test fixtures"
+    },
+    {
+      "toolName": "compare_upgrade_paths",
+      "purpose": "Compare direct vs staged upgrade approaches",
+      "status": "success",
+      "startedAt": "2026-05-16T17:47:57.036Z",
+      "finishedAt": "2026-05-16T17:47:57.036Z",
+      "resultSummary": "Staged upgrade recommended with lower risk score"
+    }
+  ],
+  "environmentEvidence": [
+    {
+      "source": "package.json:scripts.viewer:serve",
+      "filePath": "package.json",
+      "value": "node packages/viewer-server/dist/server.js",
+      "kind": "script"
+    },
+    {
+      "source": "Dockerfile:FROM",
+      "filePath": "tmp/dev2-fixtures/deterministic-repo/Dockerfile",
+      "value": "node:16-alpine",
+      "kind": "docker"
+    },
+    {
+      "source": "Dockerfile:ARG",
+      "filePath": "tmp/dev2-fixtures/deterministic-repo/Dockerfile",
+      "value": "18",
+      "kind": "docker"
+    },
+    {
+      "source": "Dockerfile:FROM",
+      "filePath": "tmp/dev2-fixtures/runtime-evidence-all/Dockerfile",
+      "value": "node:18-alpine",
+      "kind": "docker"
+    }
+  ],
+  "issues": [
+    {
+      "id": "ops-docker-tmp-dev2-fixtures-deterministic-repo-dockerfile-16-vs-20",
+      "category": "docker",
+      "title": "tmp/dev2-fixtures/deterministic-repo/Dockerfile declares Node 16 instead of 20",
+      "issue": "tmp/dev2-fixtures/deterministic-repo/Dockerfile contains a docker runtime declaration for Node 16, which differs from the requested target Node 20.",
+      "incompatibilityReason": "Docker base images and NODE_VERSION build args can pin a different Node major than the rollout target.",
+      "defaultTechnicalRecommendation": "Refresh Docker base images and build args together with the runtime upgrade.",
+      "alternativeSolutions": [
+        {
+          "rank": 0,
+          "title": "Update to Node 18 first (staged approach)",
+          "summary": "Update Docker base image to node:18-alpine as an intermediate step",
+          "targetVersionRange": "18",
+          "rationale": "Reduces risk by upgrading incrementally through LTS versions",
+          "tradeoffs": [
+            "Requires two upgrade cycles",
+            "More testing overhead"
+          ],
+          "commands": [
+            "sed -i 's/node:16-alpine/node:18-alpine/g' tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+          ]
+        },
+        {
+          "rank": 1,
+          "title": "Direct upgrade to Node 20",
+          "summary": "Update Docker base image directly to node:20-alpine",
+          "targetVersionRange": "20",
+          "rationale": "Faster path to target version",
+          "tradeoffs": [
+            "Higher risk of breaking changes",
+            "May require more fixes"
+          ],
+          "commands": [
+            "sed -i 's/node:16-alpine/node:20-alpine/g' tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+      ],
+      "evidence": [
+        {
+          "kind": "docker",
+          "filePath": "tmp/dev2-fixtures/deterministic-repo/Dockerfile",
+          "summary": "Runtime declaration differs from the expected Node 20 baseline.",
+          "snippet": "node:16-alpine"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"node|NODE_VERSION\" tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+      ],
+      "validationSteps": [
+        {
+          "title": "Validate Docker configuration",
+          "commands": [
+            "docker build -f tmp/dev2-fixtures/deterministic-repo/Dockerfile ."
+          ],
+          "expectedResult": "Docker image builds successfully with Node 20"
+        }
+      ]
+    },
+    {
+      "id": "ops-docker-tmp-dev2-fixtures-deterministic-repo-dockerfile-18-vs-20",
+      "category": "docker",
+      "title": "tmp/dev2-fixtures/deterministic-repo/Dockerfile declares Node 18 instead of 20",
+      "issue": "tmp/dev2-fixtures/deterministic-repo/Dockerfile contains a docker runtime declaration for Node 18, which differs from the requested target Node 20.",
+      "incompatibilityReason": "Docker base images and NODE_VERSION build args can pin a different Node major than the rollout target.",
+      "defaultTechnicalRecommendation": "Refresh Docker base images and build args together with the runtime upgrade.",
+      "alternativeSolutions": [
+        {
+          "rank": 0,
+          "title": "Update NODE_VERSION ARG to 20",
+          "summary": "Change the NODE_VERSION build argument to 20",
+          "targetVersionRange": "20",
+          "rationale": "Aligns build-time Node version with target",
+          "tradeoffs": [
+            "Must coordinate with base image update"
+          ],
+          "commands": [
+            "sed -i 's/ARG NODE_VERSION=18/ARG NODE_VERSION=20/g' tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+      ],
+      "evidence": [
+        {
+          "kind": "docker",
+          "filePath": "tmp/dev2-fixtures/deterministic-repo/Dockerfile",
+          "summary": "Runtime declaration differs from the expected Node 20 baseline.",
+          "snippet": "18"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"NODE_VERSION\" tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+      ],
+      "validationSteps": [
+        {
+          "title": "Validate Docker build args",
+          "commands": [
+            "docker build --build-arg NODE_VERSION=20 -f tmp/dev2-fixtures/deterministic-repo/Dockerfile ."
+          ],
+          "expectedResult": "Docker image builds successfully with NODE_VERSION=20"
+        }
+      ]
+    },
+    {
+      "id": "ops-docker-tmp-dev2-fixtures-runtime-evidence-all-dockerfile-18-vs-20",
+      "category": "docker",
+      "title": "tmp/dev2-fixtures/runtime-evidence-all/Dockerfile declares Node 18 instead of 20",
+      "issue": "tmp/dev2-fixtures/runtime-evidence-all/Dockerfile contains a docker runtime declaration for Node 18, which differs from the requested target Node 20.",
+      "incompatibilityReason": "Docker base images and NODE_VERSION build args can pin a different Node major than the rollout target.",
+      "defaultTechnicalRecommendation": "Refresh Docker base images and build args together with the runtime upgrade.",
+      "alternativeSolutions": [
+        {
+          "rank": 0,
+          "title": "Update to Node 20 base image",
+          "summary": "Update Docker base image to node:20-alpine",
+          "targetVersionRange": "20",
+          "rationale": "Direct path to target version",
+          "tradeoffs": [
+            "May expose compatibility issues immediately"
+          ],
+          "commands": [
+            "sed -i 's/node:18-alpine/node:20-alpine/g' tmp/dev2-fixtures/runtime-evidence-all/Dockerfile"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/runtime-evidence-all/Dockerfile"
+      ],
+      "evidence": [
+        {
+          "kind": "docker",
+          "filePath": "tmp/dev2-fixtures/runtime-evidence-all/Dockerfile",
+          "summary": "Runtime declaration differs from the expected Node 20 baseline.",
+          "snippet": "node:18-alpine"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"node:\" tmp/dev2-fixtures/runtime-evidence-all/Dockerfile"
+      ],
+      "validationSteps": [
+        {
+          "title": "Validate Docker configuration",
+          "commands": [
+            "docker build -f tmp/dev2-fixtures/runtime-evidence-all/Dockerfile ."
+          ],
+          "expectedResult": "Docker image builds successfully with Node 20"
+        }
+      ]
+    },
+    {
+      "id": "source-buffer-constructor-tmp-dev2-fixtures-deterministic-repo-src",
+      "category": "source",
+      "title": "Legacy Buffer constructor detected",
+      "issue": "This file uses the legacy Buffer constructor, which is a risky source pattern to carry into a Node modernization effort targeting Node 20.",
+      "incompatibilityReason": "The legacy Buffer constructor is deprecated and can hide unsafe or ambiguous behavior during runtime upgrades.",
+      "defaultTechnicalRecommendation": "Replace Buffer constructor usage with Buffer.from() or Buffer.alloc().",
+      "alternativeSolutions": [
+        {
+          "rank": 0,
+          "title": "Replace with Buffer.from()",
+          "summary": "Use Buffer.from() for string-to-buffer conversion",
+          "targetVersionRange": "20",
+          "rationale": "Buffer.from() is the recommended safe alternative",
+          "tradeoffs": [
+            "Requires code changes",
+            "May need testing"
+          ],
+          "commands": [
+            "sed -i \"s/Buffer('hello world')/Buffer.from('hello world')/g\" tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "evidence": [
+        {
+          "kind": "source",
+          "filePath": "tmp/dev2-fixtures/deterministic-repo/src/index.ts",
+          "summary": "Legacy Buffer constructor usage found in source.",
+          "line": 4,
+          "column": 21,
+          "snippet": "Buffer('hello world')"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"Buffer\\(\" tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "validationSteps": [
+        {
+          "title": "Validate Buffer usage",
+          "commands": [
+            "pnpm test",
+            "pnpm build"
+          ],
+          "expectedResult": "Tests pass and build succeeds with Buffer.from()"
+        }
+      ]
+    },
+    {
+      "id": "source-mixed-modules-tmp-dev2-fixtures-deterministic-repo-src",
+      "category": "source",
+      "title": "Mixed ESM and CommonJS patterns detected",
+      "issue": "This file mixes import/export syntax with CommonJS loader patterns, which can create friction during runtime and toolchain upgrades.",
+      "incompatibilityReason": "Mixed module syntax is harder to migrate safely because runtime semantics can vary between transpilers and Node majors.",
+      "defaultTechnicalRecommendation": "Choose one module style per file and align it with the package-level module setting before the upgrade.",
+      "alternativeSolutions": [
+        {
+          "rank": 0,
+          "title": "Convert to pure ESM",
+          "summary": "Replace CommonJS patterns with ESM equivalents",
+          "targetVersionRange": "20",
+          "rationale": "ESM is the future standard for Node.js modules",
+          "tradeoffs": [
+            "May require package.json type field",
+            "Affects import paths"
+          ],
+          "commands": [
+            "# Manual refactoring required to convert CommonJS to ESM"
+          ]
+        },
+        {
+          "rank": 1,
+          "title": "Convert to pure CommonJS",
+          "summary": "Replace ESM imports with require() calls",
+          "targetVersionRange": "20",
+          "rationale": "Maintains backward compatibility",
+          "tradeoffs": [
+            "Delays ESM adoption",
+            "May limit future tooling"
+          ],
+          "commands": [
+            "# Manual refactoring required to convert ESM to CommonJS"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "evidence": [
+        {
+          "kind": "source",
+          "filePath": "tmp/dev2-fixtures/deterministic-repo/src/index.ts",
+          "summary": "The file contains both ESM and CommonJS patterns.",
+          "line": 1,
+          "column": 1,
+          "snippet": "import fs from 'node:fs';"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"require\\(|module\\.exports|import |export \" tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "validationSteps": [
+        {
+          "title": "Validate module system consistency",
+          "commands": [
+            "pnpm test",
+            "pnpm build"
+          ],
+          "expectedResult": "Code compiles and runs with consistent module system"
+        }
+      ]
+    },
+    {
+      "id": "source-module-parent-tmp-dev2-fixtures-deterministic-repo-src",
+      "category": "source",
+      "title": "module.parent usage detected",
+      "issue": "This file reads module.parent, which can behave differently across module system transitions.",
+      "incompatibilityReason": "module.parent is closely tied to CommonJS loader behavior and can become unreliable during ESM/CJS migrations.",
+      "defaultTechnicalRecommendation": "Refactor module.parent checks to explicit entrypoint or dependency injection logic.",
+      "alternativeSolutions": [
+        {
+          "rank": 0,
+          "title": "Use import.meta.url for ESM",
+          "summary": "Replace module.parent with import.meta.url checks",
+          "targetVersionRange": "20",
+          "rationale": "import.meta.url is the ESM equivalent",
+          "tradeoffs": [
+            "Only works in ESM context",
+            "Requires refactoring"
+          ],
+          "commands": [
+            "# Manual refactoring required to replace module.parent"
+          ]
+        },
+        {
+          "rank": 1,
+          "title": "Use explicit CLI flag",
+          "summary": "Pass an explicit flag to indicate entrypoint execution",
+          "targetVersionRange": "20",
+          "rationale": "More explicit and portable across module systems",
+          "tradeoffs": [
+            "Changes API",
+            "Requires caller updates"
+          ],
+          "commands": [
+            "# Manual refactoring required to add CLI flag"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "evidence": [
+        {
+          "kind": "source",
+          "filePath": "tmp/dev2-fixtures/deterministic-repo/src/index.ts",
+          "summary": "module.parent appears in source.",
+          "line": 7,
+          "column": 5,
+          "snippet": "module.parent"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"module\\.parent\" tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "validationSteps": [
+        {
+          "title": "Validate entrypoint detection",
+          "commands": [
+            "pnpm test"
+          ],
+          "expectedResult": "Entrypoint detection works correctly without module.parent"
+        }
+      ]
+    },
+    {
+      "id": "source-process-binding-tmp-dev2-fixtures-deterministic-repo-src",
+      "category": "source",
+      "title": "Internal process.binding usage detected",
+      "issue": "This file uses process.binding(), which relies on undocumented Node internals that can change across majors.",
+      "incompatibilityReason": "Undocumented Node internals are brittle across runtime upgrades and should be replaced with public APIs.",
+      "defaultTechnicalRecommendation": "Replace process.binding() usage with a documented public API or isolate it behind runtime-specific guards.",
+      "alternativeSolutions": [
+        {
+          "rank": 0,
+          "title": "Use public Node.js APIs",
+          "summary": "Replace process.binding() with documented alternatives",
+          "targetVersionRange": "20",
+          "rationale": "Public APIs are stable across Node versions",
+          "tradeoffs": [
+            "May not have exact equivalent",
+            "Requires research"
+          ],
+          "commands": [
+            "# Manual refactoring required to replace process.binding()"
+          ]
+        },
+        {
+          "rank": 1,
+          "title": "Isolate behind version guards",
+          "summary": "Add runtime version checks before using process.binding()",
+          "targetVersionRange": "20",
+          "rationale": "Provides fallback for different Node versions",
+          "tradeoffs": [
+            "Increases code complexity",
+            "Still fragile"
+          ],
+          "commands": [
+            "# Manual refactoring required to add version guards"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "evidence": [
+        {
+          "kind": "source",
+          "filePath": "tmp/dev2-fixtures/deterministic-repo/src/index.ts",
+          "summary": "process.binding appears in source.",
+          "line": 5,
+          "column": 19,
+          "snippet": "process.binding"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"process\\.binding\" tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "validationSteps": [
+        {
+          "title": "Validate without process.binding",
+          "commands": [
+            "pnpm test",
+            "pnpm build"
+          ],
+          "expectedResult": "Code works without relying on internal APIs"
+        }
+      ]
+    }
+  ],
+  "bobDecision": {
+    "summary": "Staged upgrade to Node 20 recommended via Node 18 intermediate step",
+    "selectedTargetPath": "staged-upgrade",
+    "rationale": "The staged approach reduces risk (7.9 vs 9.7) by allowing incremental validation. All identified issues are in test fixtures (tmp/dev2-fixtures/), not production code. The main codebase has no dependency blockers and uses modern TypeScript with proper module patterns. A staged upgrade through Node 18 allows testing Docker configurations and source patterns incrementally.",
+    "prioritizedRisks": [
+      "Legacy Buffer constructor in test fixtures needs replacement with Buffer.from()",
+      "Mixed ESM/CommonJS patterns in test fixtures require module system alignment",
+      "module.parent usage needs refactoring to explicit entrypoint logic",
+      "process.binding() usage must be replaced with public APIs",
+      "Docker configurations in test fixtures need version updates"
+    ],
+    "chosenSolutions": [
+      "Phase 1: Update to Node 18 first, fixing Docker configs and source issues in test fixtures",
+      "Phase 2: Validate all tests pass on Node 18",
+      "Phase 3: Update to Node 20 after Node 18 validation",
+      "Replace legacy Buffer() with Buffer.from() in test fixtures",
+      "Standardize module system (prefer ESM) in test fixtures",
+      "Refactor module.parent to explicit entrypoint checks",
+      "Replace process.binding() with documented public APIs"
+    ],
+    "tradeoffs": [
+      "Staged approach requires two upgrade cycles but significantly reduces risk",
+      "Test fixture updates needed but production code is already compatible",
+      "More testing overhead but higher confidence in stability"
+    ]
+  },
+  "bobExecutionPlan": [
+    {
+      "phase": "preparation",
+      "order": 1,
+      "title": "Audit current Node version and dependencies",
+      "actions": [
+        "Check current Node version in use",
+        "Review package.json engines field",
+        "Verify all dependencies are compatible with Node 18+"
+      ],
+      "dependsOn": [],
+      "validation": [
+        "node --version",
+        "pnpm list"
+      ]
+    },
+    {
+      "phase": "phase-1-node-18",
+      "order": 2,
+      "title": "Update test fixtures to Node 18",
+      "actions": [
+        "Update Docker base images from node:16-alpine to node:18-alpine",
+        "Update NODE_VERSION build args to 18",
+        "Update deployment configurations to Node 18"
+      ],
+      "dependsOn": [
+        "Audit current Node version and dependencies"
+      ],
+      "validation": [
+        "docker build -f tmp/dev2-fixtures/deterministic-repo/Dockerfile .",
+        "docker build -f tmp/dev2-fixtures/runtime-evidence-all/Dockerfile ."
+      ]
+    },
+    {
+      "phase": "phase-1-node-18",
+      "order": 3,
+      "title": "Fix source compatibility issues in test fixtures",
+      "actions": [
+        "Replace Buffer() with Buffer.from() in tmp/dev2-fixtures/deterministic-repo/src/index.ts",
+        "Standardize module system (convert to pure ESM or CommonJS)",
+        "Refactor module.parent checks to explicit entrypoint logic",
+        "Replace process.binding() with public Node.js APIs"
+      ],
+      "dependsOn": [
+        "Update test fixtures to Node 18"
+      ],
+      "validation": [
+        "pnpm test",
+        "pnpm build"
+      ]
+    },
+    {
+      "phase": "phase-1-node-18",
+      "order": 4,
+      "title": "Test on Node 18",
+      "actions": [
+        "Run full test suite on Node 18",
+        "Verify Docker builds succeed",
+        "Check for runtime warnings or deprecations"
+      ],
+      "dependsOn": [
+        "Fix source compatibility issues in test fixtures"
+      ],
+      "validation": [
+        "pnpm test",
+        "pnpm build",
+        "docker build -f tmp/dev2-fixtures/deterministic-repo/Dockerfile ."
+      ]
+    },
+    {
+      "phase": "phase-2-node-20",
+      "order": 5,
+      "title": "Update to Node 20",
+      "actions": [
+        "Update Docker base images from node:18-alpine to node:20-alpine",
+        "Update NODE_VERSION build args to 20",
+        "Update deployment configurations to Node 20",
+        "Update package.json engines field to require Node 20"
+      ],
+      "dependsOn": [
+        "Test on Node 18"
+      ],
+      "validation": [
+        "docker build -f tmp/dev2-fixtures/deterministic-repo/Dockerfile .",
+        "docker build -f tmp/dev2-fixtures/runtime-evidence-all/Dockerfile ."
+      ]
+    },
+    {
+      "phase": "phase-2-node-20",
+      "order": 6,
+      "title": "Final validation on Node 20",
+      "actions": [
+        "Run full test suite on Node 20",
+        "Verify all Docker builds succeed",
+        "Check for any new warnings or deprecations",
+        "Validate production deployment readiness"
+      ],
+      "dependsOn": [
+        "Update to Node 20"
+      ],
+      "validation": [
+        "pnpm test",
+        "pnpm build",
+        "docker build -f tmp/dev2-fixtures/deterministic-repo/Dockerfile ."
+      ]
+    }
+  ],
+  "validationChecklist": [
+    {
+      "title": "Verify Node 18 compatibility",
+      "commands": [
+        "node --version",
+        "pnpm test",
+        "pnpm build"
+      ],
+      "expectedResult": "All tests pass and build succeeds on Node 18"
+    },
+    {
+      "title": "Verify Docker builds on Node 18",
+      "commands": [
+        "docker build -f tmp/dev2-fixtures/deterministic-repo/Dockerfile .",
+        "docker build -f tmp/dev2-fixtures/runtime-evidence-all/Dockerfile ."
+      ],
+      "expectedResult": "Docker images build successfully with Node 18"
+    },
+    {
+      "title": "Verify Node 20 compatibility",
+      "commands": [
+        "node --version",
+        "pnpm test",
+        "pnpm build"
+      ],
+      "expectedResult": "All tests pass and build succeeds on Node 20"
+    },
+    {
+      "title": "Verify Docker builds on Node 20",
+      "commands": [
+        "docker build -f tmp/dev2-fixtures/deterministic-repo/Dockerfile .",
+        "docker build -f tmp/dev2-fixtures/runtime-evidence-all/Dockerfile ."
+      ],
+      "expectedResult": "Docker images build successfully with Node 20"
+    },
+    {
+      "title": "Verify no deprecated API usage",
+      "commands": [
+        "rg -n \"Buffer\\(|module\\.parent|process\\.binding\" --type ts --type js"
+      ],
+      "expectedResult": "No legacy patterns found in production code"
+    }
+  ]
+}

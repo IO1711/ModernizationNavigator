@@ -59,6 +59,10 @@ async function fetchJson(url) {
   return response.json();
 }
 
+function getQueryParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+
 // ----- DOM helpers -----------------------------------------------------------
 
 function el(tag, className, content) {
@@ -112,6 +116,70 @@ function formatDate(iso) {
   }
 }
 
+function isV2Report(report) {
+  return report?.reportVersion === 'v2';
+}
+
+function getRequestedTargetValue(report) {
+  return isV2Report(report)
+    ? report.requestedTargetVersion
+    : report.requestedTargetNodeVersion;
+}
+
+function getEvaluatedTargetValues(report) {
+  return isV2Report(report)
+    ? report.evaluatedTargetVersions || []
+    : report.evaluatedTargetNodeVersions || [];
+}
+
+function getEvidenceEntries(report) {
+  return isV2Report(report)
+    ? report.environmentEvidence || []
+    : report.runtimeEvidence || [];
+}
+
+function getDependencyManager(report) {
+  return isV2Report(report)
+    ? report.stackProfile?.dependencyManager
+    : report.detectedPackageManager;
+}
+
+function getFramework(report) {
+  return isV2Report(report) ? report.stackProfile?.framework : 'node';
+}
+
+function getRuntimeName(report) {
+  return isV2Report(report) ? report.stackProfile?.runtimeName : 'node';
+}
+
+function getLanguage(report) {
+  return isV2Report(report) ? report.stackProfile?.language : null;
+}
+
+function getBuildSystem(report) {
+  return isV2Report(report) ? report.stackProfile?.buildSystem : null;
+}
+
+function formatHistoryOption(entry, index) {
+  if (entry.requestedTargetNodeVersion) {
+    return `${index + 1}. ${entry.reportId} · Node ${entry.requestedTargetNodeVersion}`;
+  }
+
+  const framework = entry.framework ? `${entry.framework} · ` : '';
+  const target = entry.requestedTargetVersion
+    ? `Target ${entry.requestedTargetVersion}`
+    : 'Saved report';
+
+  return `${index + 1}. ${entry.reportId} · ${framework}${target}`;
+}
+
+function updateViewerLocation(manifestPath, reportPath) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('manifest', manifestPath);
+  url.searchParams.set('report', reportPath);
+  history.replaceState(null, '', url);
+}
+
 // ----- Tabs ------------------------------------------------------------------
 
 function setupTabs() {
@@ -149,7 +217,7 @@ function setupTabs() {
 function updateRailCounts(report) {
   const counts = {
     issues: (report.issues || []).length,
-    evidence: (report.runtimeEvidence || []).length,
+    evidence: getEvidenceEntries(report).length,
     plan: (report.bobExecutionPlan || []).length,
     validation: (report.validationChecklist || []).length,
     trace: (report.toolTrace || []).length
@@ -167,14 +235,15 @@ function updateRailCounts(report) {
 function renderStats(report) {
   if (!elements.stats) return;
   clearElement(elements.stats);
+  const requestedTarget = getRequestedTargetValue(report);
+  const evaluatedTargets = getEvaluatedTargetValues(report);
+  const evidenceEntries = getEvidenceEntries(report);
+  const targetLabel = isV2Report(report) ? 'Target version' : 'Target Node';
   const stats = [
     {
-      label: 'Target Node',
-      value: report.requestedTargetNodeVersion || '—',
-      foot:
-        (report.evaluatedTargetNodeVersions || []).length
-          ? `Evaluated: ${report.evaluatedTargetNodeVersions.join(', ')}`
-          : null
+      label: targetLabel,
+      value: requestedTarget || '—',
+      foot: evaluatedTargets.length ? `Evaluated: ${evaluatedTargets.join(', ')}` : null
     },
     {
       label: 'Issues',
@@ -183,8 +252,8 @@ function renderStats(report) {
     },
     {
       label: 'Evidence',
-      value: (report.runtimeEvidence || []).length,
-      foot: 'Runtime declarations'
+      value: evidenceEntries.length,
+      foot: isV2Report(report) ? 'Environment declarations' : 'Runtime declarations'
     },
     {
       label: 'Plan steps',
@@ -214,16 +283,31 @@ function traceSummary(trace) {
 
 function renderMeta(report) {
   clearElement(elements.reportMeta);
-  const rows = [
-    ['Report ID', report.reportId, true],
-    ['Created', formatDate(report.createdAt), false],
-    ['Repo', report.repoRoot, true],
-    ['Subdirectory', report.subdirectory || '—', true],
-    ['Target Node', report.requestedTargetNodeVersion, false],
-    ['Evaluated', (report.evaluatedTargetNodeVersions || []).join(', ') || '—', false],
-    ['Package manager', report.detectedPackageManager, false],
-    ['Offline mode', report.offlineMode ? 'Yes' : 'No', false]
-  ];
+  const rows = isV2Report(report)
+    ? [
+        ['Report ID', report.reportId, true],
+        ['Created', formatDate(report.createdAt), false],
+        ['Repo', report.repoRoot, true],
+        ['Subdirectory', report.subdirectory || '—', true],
+        ['Framework', getFramework(report) || '—', false],
+        ['Language', getLanguage(report) || '—', false],
+        ['Runtime', getRuntimeName(report) || '—', false],
+        ['Target version', getRequestedTargetValue(report) || '—', false],
+        ['Evaluated', getEvaluatedTargetValues(report).join(', ') || '—', false],
+        ['Dependency manager', getDependencyManager(report) || '—', false],
+        ['Build system', getBuildSystem(report) || '—', false],
+        ['Offline mode', report.offlineMode ? 'Yes' : 'No', false]
+      ]
+    : [
+        ['Report ID', report.reportId, true],
+        ['Created', formatDate(report.createdAt), false],
+        ['Repo', report.repoRoot, true],
+        ['Subdirectory', report.subdirectory || '—', true],
+        ['Target Node', report.requestedTargetNodeVersion, false],
+        ['Evaluated', (report.evaluatedTargetNodeVersions || []).join(', ') || '—', false],
+        ['Package manager', report.detectedPackageManager, false],
+        ['Offline mode', report.offlineMode ? 'Yes' : 'No', false]
+      ];
   for (const [label, value, mono] of rows) {
     elements.reportMeta.append(el('dt', null, label));
     elements.reportMeta.append(el('dd', mono ? 'mono' : null, value || '—'));
@@ -236,15 +320,25 @@ function renderDecision(report) {
   elements.decisionSummary.textContent = decision.summary || '';
 
   clearElement(elements.decisionPills);
+  const requestedTarget = getRequestedTargetValue(report);
+  const evaluatedTargets = getEvaluatedTargetValues(report);
   const pills = [];
-  if (report.requestedTargetNodeVersion) {
-    pills.push({ text: `Requested · Node ${report.requestedTargetNodeVersion}`, strong: true });
+  if (requestedTarget) {
+    pills.push({
+      text: isV2Report(report)
+        ? `Requested · ${requestedTarget}`
+        : `Requested · Node ${requestedTarget}`,
+      strong: true
+    });
   }
-  if (report.evaluatedTargetNodeVersions?.length) {
-    pills.push({ text: `Evaluated · ${report.evaluatedTargetNodeVersions.join(', ')}` });
+  if (evaluatedTargets.length) {
+    pills.push({ text: `Evaluated · ${evaluatedTargets.join(', ')}` });
   }
-  if (report.detectedPackageManager) {
-    pills.push({ text: report.detectedPackageManager });
+  if (isV2Report(report) && getFramework(report)) {
+    pills.push({ text: getFramework(report) });
+  }
+  if (getDependencyManager(report)) {
+    pills.push({ text: getDependencyManager(report) });
   }
   if (typeof report.offlineMode === 'boolean') {
     pills.push({ text: report.offlineMode ? 'Offline' : 'Online' });
@@ -282,16 +376,18 @@ function renderDecision(report) {
 
 function renderTargetPaths(report) {
   clearElement(elements.targetPaths);
-  const versions = report.evaluatedTargetNodeVersions || [];
+  const versions = getEvaluatedTargetValues(report);
   if (versions.length === 0) {
     elements.targetPaths.append(createEmptyState('No target paths evaluated.'));
     return;
   }
-  const requested = String(report.requestedTargetNodeVersion ?? '');
+  const requested = String(getRequestedTargetValue(report) ?? '');
   for (const version of versions) {
     const isRequested = String(version) === requested;
     const card = el('article', isRequested ? 'target requested' : 'target');
-    card.append(el('strong', null, `Node ${version}`));
+    card.append(
+      el('strong', null, isV2Report(report) ? `Version ${version}` : `Node ${version}`)
+    );
     card.append(
       el('span', isRequested ? 'badge badge-accent' : 'badge', isRequested ? 'Requested' : 'Evaluated')
     );
@@ -407,9 +503,9 @@ function buildAlternative(alt) {
 
 function renderEvidence(report) {
   clearElement(elements.evidence);
-  const entries = report.runtimeEvidence || [];
+  const entries = getEvidenceEntries(report);
   if (entries.length === 0) {
-    elements.evidence.append(createEmptyState('No runtime evidence captured.'));
+    elements.evidence.append(createEmptyState('No environment evidence captured.'));
     return;
   }
   for (const ev of entries) {
@@ -515,12 +611,39 @@ function renderReport(report) {
 
 // ----- History selector + boot ----------------------------------------------
 
-function buildHistoryOptions(manifest) {
+function buildHistoryOptions(manifest, selectedPath, selectedReport) {
   clearElement(elements.historySelect);
-  manifest.history.forEach((entry, index) => {
+  const historyEntries = [...(manifest.history || [])];
+
+  if (
+    selectedPath &&
+    !historyEntries.some((entry) => entry.reportPath === selectedPath) &&
+    selectedReport?.reportId
+  ) {
+    historyEntries.unshift(
+      selectedReport.reportVersion === 'v2'
+        ? {
+            reportId: selectedReport.reportId,
+            createdAt: selectedReport.createdAt,
+            reportPath: selectedPath,
+            framework: selectedReport.stackProfile?.framework,
+            requestedTargetVersion: selectedReport.requestedTargetVersion,
+            subdirectory: selectedReport.subdirectory
+          }
+        : {
+            reportId: selectedReport.reportId,
+            createdAt: selectedReport.createdAt,
+            reportPath: selectedPath,
+            requestedTargetNodeVersion: selectedReport.requestedTargetNodeVersion,
+            subdirectory: selectedReport.subdirectory
+          }
+    );
+  }
+
+  historyEntries.forEach((entry, index) => {
     const option = document.createElement('option');
     option.value = entry.reportPath;
-    option.textContent = `${index + 1}. ${entry.reportId} · Node ${entry.requestedTargetNodeVersion}`;
+    option.textContent = formatHistoryOption(entry, index);
     elements.historySelect.append(option);
   });
 }
@@ -533,20 +656,26 @@ async function loadReportFromPath(reportPath, manifestUrl) {
 async function boot() {
   setupTabs();
 
-  const manifestPath = config.sampleMode ? config.sampleManifestPath : config.manifestPath;
+  const manifestPath =
+    getQueryParam('manifest') ||
+    (config.sampleMode ? config.sampleManifestPath : config.manifestPath);
   const manifestUrl = resolveAgainst(window.location.href, manifestPath);
   const manifest = await fetchJson(manifestUrl);
-
-  buildHistoryOptions(manifest);
-
-  const initialPath = manifest.latestReportPath || manifest.history[0]?.reportPath || null;
+  const requestedReportPath = getQueryParam('report');
+  const initialPath =
+    requestedReportPath || manifest.latestReportPath || manifest.history[0]?.reportPath || null;
   if (!initialPath) throw new Error('Report manifest is empty.');
 
-  elements.historySelect.value = manifest.history[0]?.reportPath || initialPath;
-  renderReport(await loadReportFromPath(initialPath, manifestUrl));
+  const initialReport = await loadReportFromPath(initialPath, manifestUrl);
+  buildHistoryOptions(manifest, initialPath, initialReport);
+  elements.historySelect.value = initialPath;
+  updateViewerLocation(manifestPath, initialPath);
+  renderReport(initialReport);
 
   elements.historySelect.addEventListener('change', async (event) => {
-    renderReport(await loadReportFromPath(event.target.value, manifestUrl));
+    const reportPath = event.target.value;
+    updateViewerLocation(manifestPath, reportPath);
+    renderReport(await loadReportFromPath(reportPath, manifestUrl));
   });
 }
 

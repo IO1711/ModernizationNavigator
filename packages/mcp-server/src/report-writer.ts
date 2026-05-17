@@ -19,12 +19,12 @@ import {
 type ManifestEntry = ReportManifest['history'][number];
 type ManifestEntryV2 = ReportManifestV2['history'][number];
 
-function getProjectRoot(): string {
-  return process.cwd();
+function resolveRepoRoot(repoRoot: string): string {
+  return path.resolve(repoRoot);
 }
 
-function getAbsolutePath(relativePath: string): string {
-  return path.resolve(getProjectRoot(), relativePath);
+function getAbsolutePath(repoRoot: string, relativePath: string): string {
+  return path.resolve(resolveRepoRoot(repoRoot), relativePath);
 }
 
 async function ensureParentDirectory(filePath: string): Promise<void> {
@@ -36,9 +36,9 @@ async function writeJsonFile(filePath: string, data: unknown): Promise<void> {
   await fs.writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 }
 
-async function readManifest(): Promise<ReportManifest> {
+async function readManifest(repoRoot: string): Promise<ReportManifest> {
   try {
-    const content = await fs.readFile(getAbsolutePath(REPORT_INDEX_PATH), 'utf8');
+    const content = await fs.readFile(getAbsolutePath(repoRoot, REPORT_INDEX_PATH), 'utf8');
     return reportManifestSchema.parse(JSON.parse(content));
   } catch {
     return {
@@ -48,9 +48,12 @@ async function readManifest(): Promise<ReportManifest> {
   }
 }
 
-async function readManifestV2(): Promise<ReportManifestV2> {
+async function readManifestV2(repoRoot: string): Promise<ReportManifestV2> {
   try {
-    const content = await fs.readFile(getAbsolutePath(REPORT_INDEX_V2_PATH), 'utf8');
+    const content = await fs.readFile(
+      getAbsolutePath(repoRoot, REPORT_INDEX_V2_PATH),
+      'utf8'
+    );
     return reportManifestV2Schema.parse(JSON.parse(content));
   } catch {
     return {
@@ -67,30 +70,45 @@ export function buildReportId(now = new Date()): string {
     .replace(/\.\d{3}Z$/, 'Z');
 }
 
-export async function writeLatestReport(report: Report): Promise<string> {
-  await writeJsonFile(getAbsolutePath(LATEST_REPORT_PATH), report);
+export async function writeLatestReport(
+  report: Report,
+  repoRoot: string
+): Promise<string> {
+  await writeJsonFile(getAbsolutePath(repoRoot, LATEST_REPORT_PATH), report);
   return LATEST_REPORT_PATH;
 }
 
-export async function writeHistoryReport(report: Report): Promise<string> {
+export async function writeHistoryReport(
+  report: Report,
+  repoRoot: string
+): Promise<string> {
   const historyPath = path.posix.join(HISTORY_REPORTS_DIR, `${report.reportId}.json`);
-  await writeJsonFile(getAbsolutePath(historyPath), report);
+  await writeJsonFile(getAbsolutePath(repoRoot, historyPath), report);
   return historyPath;
 }
 
-export async function writeLatestReportV2(report: ReportV2): Promise<string> {
-  await writeJsonFile(getAbsolutePath(LATEST_REPORT_V2_PATH), report);
+export async function writeLatestReportV2(
+  report: ReportV2,
+  repoRoot: string
+): Promise<string> {
+  await writeJsonFile(getAbsolutePath(repoRoot, LATEST_REPORT_V2_PATH), report);
   return LATEST_REPORT_V2_PATH;
 }
 
-export async function writeHistoryReportV2(report: ReportV2): Promise<string> {
+export async function writeHistoryReportV2(
+  report: ReportV2,
+  repoRoot: string
+): Promise<string> {
   const historyPath = path.posix.join(HISTORY_REPORTS_V2_DIR, `${report.reportId}.json`);
-  await writeJsonFile(getAbsolutePath(historyPath), report);
+  await writeJsonFile(getAbsolutePath(repoRoot, historyPath), report);
   return historyPath;
 }
 
-export async function updateReportManifest(entry: ManifestEntry): Promise<ReportManifest> {
-  const currentManifest = await readManifest();
+export async function updateReportManifest(
+  entry: ManifestEntry,
+  repoRoot: string
+): Promise<ReportManifest> {
+  const currentManifest = await readManifest(repoRoot);
   const history = [
     entry,
     ...currentManifest.history.filter((item) => item.reportId !== entry.reportId)
@@ -101,14 +119,15 @@ export async function updateReportManifest(entry: ManifestEntry): Promise<Report
     history
   };
 
-  await writeJsonFile(getAbsolutePath(REPORT_INDEX_PATH), nextManifest);
+  await writeJsonFile(getAbsolutePath(repoRoot, REPORT_INDEX_PATH), nextManifest);
   return nextManifest;
 }
 
 export async function updateReportManifestV2(
-  entry: ManifestEntryV2
+  entry: ManifestEntryV2,
+  repoRoot: string
 ): Promise<ReportManifestV2> {
-  const currentManifest = await readManifestV2();
+  const currentManifest = await readManifestV2(repoRoot);
   const history = [
     entry,
     ...currentManifest.history.filter((item) => item.reportId !== entry.reportId)
@@ -119,6 +138,6 @@ export async function updateReportManifestV2(
     history
   };
 
-  await writeJsonFile(getAbsolutePath(REPORT_INDEX_V2_PATH), nextManifest);
+  await writeJsonFile(getAbsolutePath(repoRoot, REPORT_INDEX_V2_PATH), nextManifest);
   return nextManifest;
 }

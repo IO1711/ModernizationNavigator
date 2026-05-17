@@ -1,0 +1,53 @@
+[
+  {
+    "id": "django-legacy-major",
+    "title": "Django is pinned to a legacy major",
+    "match": {
+      "packageName": "django",
+      "maxRecommendedMajor": 3
+    },
+    "incompatibilityReason": "Older Django majors can leave the project carrying outdated middleware, settings, and deployment assumptions into a Python runtime upgrade.",
+    "defaultTechnicalRecommendation": "Upgrade Django to a currently supported major before or during the Python runtime rollout.",
+    "alternativeSolutions": [],
+    "evidenceHints": [
+      "pyproject.toml dependencies",
+      "requirements*.txt",
+      "Pipfile",
+      "poetry.lock"
+    ]
+  },
+  {
+    "id": "flask-legacy-major",
+    "title": "Flask is pinned to a legacy major",
+    "match": {
+      "packageName": "flask",
+      "maxRecommendedMajor": 2
+    },
+    "incompatibilityReason": "Older Flask majors can lag behind current Werkzeug and Python runtime expectations, increasing upgrade friction.",
+    "defaultTechnicalRecommendation": "Upgrade Flask and its serving stack to a currently supported major before finalizing the Python runtime cutover.",
+    "alternativeSolutions": [],
+    "evidenceHints": [
+      "pyproject.toml dependencies",
+      "requirements*.txt",
+      "Pipfile",
+      "poetry.lock"
+    ]
+  },
+  {
+    "id": "fastapi-pre-modern-baseline",
+    "title": "FastAPI is pinned below the current compatibility baseline",
+    "match": {
+      "packageName": "fastapi",
+      "minRecommendedVersion": "0.100.0"
+    },
+    "incompatibilityReason": "Older FastAPI releases are more likely to be tied to pre-Pydantic-v2 assumptions that complicate Python runtime and framework upgrades.",
+    "defaultTechnicalRecommendation": "Upgrade FastAPI to a modern release line and validate the ASGI stack on the target Python runtime.",
+    "alternativeSolutions": [],
+    "evidenceHints": [
+      "pyproject.toml dependencies",
+      "requirements*.txt",
+      "Pipfile",
+      "poetry.lock"
+    ]
+  }
+]

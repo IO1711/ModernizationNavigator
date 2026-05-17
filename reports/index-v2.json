@@ -1,0 +1,37 @@
+{
+  "latestReportPath": "reports/latest/report-v2.json",
+  "history": [
+    {
+      "reportId": "ibm-hackathon-20260516T202205Z",
+      "createdAt": "2026-05-16T20:22:05.000Z",
+      "reportPath": "reports/history/v2/ibm-hackathon-20260516T202205Z.json",
+      "ecosystem": "node",
+      "framework": "node",
+      "requestedTargetVersion": "22"
+    },
+    {
+      "reportId": "ibm-hackathon-20260516T190330Z",
+      "createdAt": "2026-05-16T19:03:30.893Z",
+      "reportPath": "reports/history/v2/ibm-hackathon-20260516T190330Z.json",
+      "ecosystem": "node",
+      "framework": "node",
+      "requestedTargetVersion": "20"
+    },
+    {
+      "reportId": "ibm-hackathon-20260516T182346Z",
+      "createdAt": "2026-05-16T18:23:46.000Z",
+      "reportPath": "reports/history/v2/ibm-hackathon-20260516T182346Z.json",
+      "ecosystem": "node",
+      "framework": "node",
+      "requestedTargetVersion": "20"
+    },
+    {
+      "reportId": "ibm-hackathon-20260516T174757Z",
+      "createdAt": "2026-05-16T17:47:57.036Z",
+      "reportPath": "reports/history/v2/ibm-hackathon-20260516T174757Z.json",
+      "ecosystem": "node",
+      "framework": "node",
+      "requestedTargetVersion": "20"
+    }
+  ]
+}

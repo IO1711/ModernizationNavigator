@@ -30,11 +30,15 @@ describe('tool contract registry', () => {
     const validPayload = loadJsonFixture(
       'fixtures/contracts/tools/valid-open-report-viewer-input.json'
     );
+    const validV2Payload = loadJsonFixture(
+      'fixtures/contracts/tools/valid-open-report-viewer-input-v2.json'
+    );
     const invalidPayload = loadJsonFixture(
       'fixtures/contracts/tools/invalid-open-report-viewer-input.json'
     );
 
     expect(validateToolInput(OPEN_REPORT_VIEWER, validPayload).success).toBe(true);
+    expect(validateToolInput(OPEN_REPORT_VIEWER, validV2Payload).success).toBe(true);
     expect(validateToolInput(OPEN_REPORT_VIEWER, invalidPayload).success).toBe(false);
   });
 

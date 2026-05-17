@@ -1,0 +1,358 @@
+{
+  "reportVersion": "v2",
+  "reportId": "ibm-hackathon-20260516T190330Z",
+  "createdAt": "2026-05-16T19:03:30.893Z",
+  "repoRoot": "/Users/bilolbekrayimov/games/IBM_hackathon",
+  "stackProfile": {
+    "ecosystem": "node",
+    "framework": "node",
+    "language": "typescript",
+    "runtimeName": "node",
+    "dependencyManager": "pnpm",
+    "buildSystem": "tsc"
+  },
+  "projectDescriptors": [
+    {
+      "rootPath": ".",
+      "ecosystem": "node",
+      "framework": "node",
+      "language": "typescript",
+      "runtimeName": "node",
+      "dependencyManager": "pnpm",
+      "buildSystem": "tsc",
+      "confidence": 0.62,
+      "markers": [
+        "file:package.json"
+      ]
+    }
+  ],
+  "requestedTargetVersion": "20",
+  "evaluatedTargetVersions": [
+    "20"
+  ],
+  "offlineMode": false,
+  "externalDataStatus": {
+    "sources": [
+      {
+        "source": "npm-registry",
+        "status": "used",
+        "notes": []
+      }
+    ],
+    "notes": []
+  },
+  "toolTrace": [
+    {
+      "toolName": "discover_project_stack",
+      "purpose": "Detect workspace scope and project stack",
+      "status": "success",
+      "startedAt": "2026-05-16T19:02:55.637Z",
+      "finishedAt": "2026-05-16T19:02:55.637Z",
+      "resultSummary": "Detected Node.js TypeScript monorepo with pnpm"
+    },
+    {
+      "toolName": "collect_environment_evidence",
+      "purpose": "Collect runtime evidence from configuration files",
+      "status": "success",
+      "startedAt": "2026-05-16T19:03:07.484Z",
+      "finishedAt": "2026-05-16T19:03:07.484Z",
+      "resultSummary": "Found runtime evidence in scripts and test fixtures"
+    },
+    {
+      "toolName": "inspect_framework_dependencies",
+      "purpose": "Check dependency compatibility with Node 20",
+      "status": "success",
+      "startedAt": "2026-05-16T19:03:12.188Z",
+      "finishedAt": "2026-05-16T19:03:12.188Z",
+      "resultSummary": "No dependency blockers found"
+    },
+    {
+      "toolName": "inspect_platform_config",
+      "purpose": "Inspect CI, Docker, and deployment configuration",
+      "status": "success",
+      "startedAt": "2026-05-16T19:03:19.877Z",
+      "finishedAt": "2026-05-16T19:03:19.877Z",
+      "resultSummary": "Found 3 Docker configuration mismatches in test fixtures"
+    },
+    {
+      "toolName": "inspect_source_risks",
+      "purpose": "Scan source code for deprecated Node APIs",
+      "status": "success",
+      "startedAt": "2026-05-16T19:03:30.893Z",
+      "finishedAt": "2026-05-16T19:03:30.893Z",
+      "resultSummary": "Found 4 source compatibility issues in test fixtures"
+    }
+  ],
+  "environmentEvidence": [
+    {
+      "source": "package.json:scripts.viewer:serve",
+      "filePath": "package.json",
+      "value": "node packages/viewer-server/dist/server.js",
+      "kind": "script"
+    },
+    {
+      "source": "package.json",
+      "filePath": "package.json",
+      "value": "tsc",
+      "kind": "build-system"
+    },
+    {
+      "source": "package-manager",
+      "filePath": "package.json",
+      "value": "pnpm",
+      "kind": "dependency-manager"
+    }
+  ],
+  "issues": [
+    {
+      "id": "ops-docker-tmp-dev2-fixtures-deterministic-repo-dockerfile-16-vs-20",
+      "category": "docker",
+      "title": "Test fixture Dockerfile declares Node 16 instead of 20",
+      "issue": "tmp/dev2-fixtures/deterministic-repo/Dockerfile contains Node 16 base image",
+      "incompatibilityReason": "Docker base images in test fixtures should match target Node version for consistency",
+      "defaultTechnicalRecommendation": "Update test fixture Dockerfiles to use Node 20 base images",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Update test fixture Docker images to Node 20",
+          "summary": "Update all test fixture Dockerfiles to use node:20-alpine base image",
+          "targetVersionRange": "20.x",
+          "rationale": "Test fixtures should reflect the target runtime environment",
+          "tradeoffs": [
+            "Test fixtures are for testing purposes only, not production code"
+          ],
+          "commands": [
+            "sed -i 's/node:16-alpine/node:20-alpine/g' tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+      ],
+      "evidence": [
+        {
+          "kind": "docker",
+          "filePath": "tmp/dev2-fixtures/deterministic-repo/Dockerfile",
+          "summary": "Runtime declaration differs from Node 20",
+          "snippet": "node:16-alpine",
+          "source": "Dockerfile:FROM"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"node:\" tmp/dev2-fixtures/deterministic-repo/Dockerfile"
+      ],
+      "validationSteps": [
+        {
+          "title": "Verify Docker build with Node 20",
+          "commands": [
+            "docker build -t test-fixture tmp/dev2-fixtures/deterministic-repo"
+          ],
+          "expectedResult": "Docker image builds successfully with Node 20"
+        }
+      ]
+    },
+    {
+      "id": "source-buffer-constructor-test-fixture",
+      "category": "source",
+      "title": "Legacy Buffer constructor in test fixture",
+      "issue": "Test fixture uses deprecated Buffer constructor",
+      "incompatibilityReason": "Legacy Buffer constructor is deprecated and should be replaced",
+      "defaultTechnicalRecommendation": "Replace Buffer() with Buffer.from() or Buffer.alloc()",
+      "alternativeSolutions": [
+        {
+          "rank": 1,
+          "title": "Update to Buffer.from()",
+          "summary": "Replace Buffer('hello world') with Buffer.from('hello world')",
+          "targetVersionRange": "20.x",
+          "rationale": "Buffer.from() is the recommended API for creating buffers from strings",
+          "tradeoffs": [
+            "Minimal change, maintains same functionality"
+          ],
+          "commands": [
+            "sed -i \"s/Buffer('/Buffer.from('/g\" tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+          ]
+        }
+      ],
+      "affectedFiles": [
+        "tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "evidence": [
+        {
+          "kind": "source",
+          "filePath": "tmp/dev2-fixtures/deterministic-repo/src/index.ts",
+          "summary": "Legacy Buffer constructor usage",
+          "line": 4,
+          "column": 21,
+          "snippet": "Buffer('hello world')"
+        }
+      ],
+      "recommendedCommands": [
+        "rg -n \"Buffer\\(\" tmp/dev2-fixtures/deterministic-repo/src/index.ts"
+      ],
+      "validationSteps": [
+        {
+          "title": "Verify code compiles and tests pass",
+          "commands": [
+            "pnpm test",
+            "pnpm build"
+          ],
+          "expectedResult": "All tests pass and code compiles without warnings"
+        }
+      ]
+    }
+  ],
+  "bobDecision": {
+    "summary": "Direct upgrade to Node 20 is recommended for this TypeScript monorepo",
+    "selectedTargetPath": "Direct upgrade to Node 20.x LTS",
+    "rationale": "The repository has no dependency blockers, uses modern TypeScript with pnpm workspaces, and all identified issues are in test fixtures rather than production code. The main codebase is already well-structured for Node 20 compatibility.",
+    "prioritizedRisks": [
+      "Test fixtures contain outdated Docker configurations (Node 16, 18)",
+      "Test fixtures use deprecated Node APIs (Buffer constructor, process.binding, module.parent)",
+      "Test fixtures mix ESM and CommonJS patterns"
+    ],
+    "chosenSolutions": [
+      "Update test fixture Dockerfiles to Node 20 base images",
+      "Refactor test fixture code to use modern Buffer APIs",
+      "Standardize module system in test fixtures",
+      "Add Node 20 to CI/CD pipeline if not already present"
+    ],
+    "tradeoffs": [
+      "Test fixtures need updates but don't block production upgrade",
+      "No staged upgrade needed since dependencies are compatible",
+      "TypeScript compilation target may need review for optimal Node 20 features"
+    ]
+  },
+  "bobExecutionPlan": [
+    {
+      "phase": "Preparation",
+      "order": 1,
+      "title": "Verify current Node version and dependencies",
+      "actions": [
+        "Check current Node version: node --version",
+        "Verify pnpm version compatibility with Node 20",
+        "Review package.json engines field (if present)"
+      ],
+      "dependsOn": [],
+      "validation": [
+        "Node version confirmed",
+        "pnpm works with Node 20"
+      ]
+    },
+    {
+      "phase": "Core Upgrade",
+      "order": 2,
+      "title": "Upgrade Node runtime to 20.x LTS",
+      "actions": [
+        "Install Node 20.x LTS (recommend 20.18.0 or later)",
+        "Update .nvmrc if present to specify Node 20",
+        "Update package.json engines field to require Node 20"
+      ],
+      "dependsOn": [
+        "Preparation"
+      ],
+      "validation": [
+        "node --version shows 20.x",
+        "pnpm install completes successfully"
+      ]
+    },
+    {
+      "phase": "Build & Test",
+      "order": 3,
+      "title": "Verify build and test suite",
+      "actions": [
+        "Run pnpm install to refresh dependencies",
+        "Run pnpm build to compile TypeScript",
+        "Run pnpm test to verify all tests pass",
+        "Check for any deprecation warnings in output"
+      ],
+      "dependsOn": [
+        "Core Upgrade"
+      ],
+      "validation": [
+        "Build succeeds",
+        "All tests pass",
+        "No critical warnings"
+      ]
+    },
+    {
+      "phase": "Test Fixtures",
+      "order": 4,
+      "title": "Update test fixtures (optional but recommended)",
+      "actions": [
+        "Update Dockerfiles in tmp/dev2-fixtures to use node:20-alpine",
+        "Refactor deprecated Buffer() calls to Buffer.from()",
+        "Review and standardize module system usage",
+        "Remove process.binding and module.parent usage"
+      ],
+      "dependsOn": [
+        "Build & Test"
+      ],
+      "validation": [
+        "Test fixtures build successfully",
+        "Fixture tests pass"
+      ]
+    },
+    {
+      "phase": "Documentation",
+      "order": 5,
+      "title": "Update documentation and CI",
+      "actions": [
+        "Update README.md with Node 20 requirement",
+        "Update CI/CD configuration if present (GitHub Actions, etc.)",
+        "Document any breaking changes or migration notes",
+        "Update developer setup instructions"
+      ],
+      "dependsOn": [
+        "Build & Test"
+      ],
+      "validation": [
+        "Documentation reflects Node 20",
+        "CI pipeline uses Node 20"
+      ]
+    }
+  ],
+  "validationChecklist": [
+    {
+      "title": "Verify Node 20 installation",
+      "commands": [
+        "node --version"
+      ],
+      "expectedResult": "Output shows v20.x.x"
+    },
+    {
+      "title": "Install dependencies with pnpm",
+      "commands": [
+        "pnpm install"
+      ],
+      "expectedResult": "Dependencies install without errors"
+    },
+    {
+      "title": "Build all packages",
+      "commands": [
+        "pnpm build"
+      ],
+      "expectedResult": "TypeScript compilation succeeds for all packages"
+    },
+    {
+      "title": "Run test suite",
+      "commands": [
+        "pnpm test"
+      ],
+      "expectedResult": "All tests pass"
+    },
+    {
+      "title": "Start viewer server",
+      "commands": [
+        "pnpm viewer:serve"
+      ],
+      "expectedResult": "Server starts without errors on Node 20"
+    },
+    {
+      "title": "Verify no deprecation warnings",
+      "commands": [
+        "node --trace-deprecation packages/viewer-server/dist/server.js"
+      ],
+      "expectedResult": "No deprecation warnings appear"
+    }
+  ]
+}

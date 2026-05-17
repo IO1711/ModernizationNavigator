@@ -11,6 +11,7 @@ import {
   writeHistoryReportV2,
   writeLatestReportV2
 } from '../report-writer';
+import { registerSavedReportPath } from '../viewer-runtime';
 
 export async function saveModernizationReportV2(
   input: SaveModernizationReportV2Input
@@ -18,7 +19,7 @@ export async function saveModernizationReportV2(
   const parsedInput = saveModernizationReportV2InputSchema.parse(input);
   const report = reportV2Schema.parse(parsedInput.report);
 
-  const historyPath = await writeHistoryReportV2(report);
+  const historyPath = await writeHistoryReportV2(report, report.repoRoot);
 
   await updateReportManifestV2({
     reportId: report.reportId,
@@ -28,9 +29,11 @@ export async function saveModernizationReportV2(
     framework: report.stackProfile.framework,
     requestedTargetVersion: report.requestedTargetVersion,
     subdirectory: report.subdirectory
-  });
+  }, report.repoRoot);
 
-  const reportPath = await writeLatestReportV2(report);
+  const reportPath = await writeLatestReportV2(report, report.repoRoot);
+  registerSavedReportPath(historyPath, report.repoRoot);
+  registerSavedReportPath(reportPath, report.repoRoot);
 
   return saveModernizationReportV2ResultSchema.parse({
     reportId: report.reportId,

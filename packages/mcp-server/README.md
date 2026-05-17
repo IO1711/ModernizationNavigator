@@ -7,7 +7,7 @@ npm install -g @modernization-navigator/mcp-server
 modernization-navigator-mcp setup --repo /path/to/your-repo
 ```
 
-That setup command writes `.bob/mcp.json` in the target repo and points it at the globally installed `modernization-navigator-mcp` binary. The target repo does not need to be a Node workspace for that bootstrap step to work.
+That setup command writes `.bob/mcp.json`, `.bob/custom_modes.yaml`, and `.bob/rules-modernization-architect/` in the target repo and points Bob at the globally installed `modernization-navigator-mcp` binary. The target repo does not need to be a Node workspace for that bootstrap step to work.
 
 ## Commands
 

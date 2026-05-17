@@ -14,6 +14,7 @@
     "@modernization-navigator/shared": "0.1.0",
     "@modernization-navigator/analysis-engine": "0.1.0",
     "@modernization-navigator/viewer-server": "0.1.0",
+    "yaml": "^2.9.0",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.5"
   },

@@ -1,0 +1,259 @@
+{
+  "reportVersion": "v2",
+  "reportId": "ibm-hackathon-20260516T202205Z",
+  "createdAt": "2026-05-16T20:22:05.000Z",
+  "repoRoot": "/Users/bilolbekrayimov/games/IBM_hackathon",
+  "stackProfile": {
+    "ecosystem": "node",
+    "framework": "node",
+    "language": "typescript",
+    "runtimeName": "node",
+    "dependencyManager": "pnpm",
+    "buildSystem": "tsc"
+  },
+  "projectDescriptors": [
+    {
+      "rootPath": ".",
+      "ecosystem": "node",
+      "framework": "node",
+      "language": "typescript",
+      "runtimeName": "node",
+      "dependencyManager": "pnpm",
+      "buildSystem": "tsc",
+      "confidence": 0.62,
+      "markers": [
+        "file:package.json"
+      ]
+    }
+  ],
+  "requestedTargetVersion": "22",
+  "evaluatedTargetVersions": [
+    "22"
+  ],
+  "offlineMode": false,
+  "externalDataStatus": {
+    "sources": [
+      {
+        "source": "npm-registry",
+        "status": "used",
+        "notes": []
+      }
+    ],
+    "notes": [
+      "All external data sources were successfully queried"
+    ]
+  },
+  "toolTrace": [
+    {
+      "toolName": "discover_project_stack",
+      "purpose": "Detect workspace scope and project stack",
+      "status": "success",
+      "startedAt": "2026-05-16T20:21:25.000Z",
+      "finishedAt": "2026-05-16T20:21:25.231Z",
+      "resultSummary": "Detected Node.js TypeScript monorepo with pnpm"
+    },
+    {
+      "toolName": "collect_environment_evidence",
+      "purpose": "Gather runtime and environment configuration evidence",
+      "status": "success",
+      "startedAt": "2026-05-16T20:21:31.000Z",
+      "finishedAt": "2026-05-16T20:21:31.177Z",
+      "resultSummary": "Found environment evidence in test fixtures only"
+    },
+    {
+      "toolName": "inspect_framework_dependencies",
+      "purpose": "Check dependency compatibility with Node 22",
+      "status": "success",
+      "startedAt": "2026-05-16T20:21:41.000Z",
+      "finishedAt": "2026-05-16T20:21:41.474Z",
+      "resultSummary": "No dependency blockers detected"
+    },
+    {
+      "toolName": "inspect_platform_config",
+      "purpose": "Inspect CI, Docker, and deployment configuration",
+      "status": "success",
+      "startedAt": "2026-05-16T20:21:47.000Z",
+      "finishedAt": "2026-05-16T20:21:47.461Z",
+      "resultSummary": "Found 7 runtime mismatches in test fixtures only"
+    },
+    {
+      "toolName": "inspect_source_risks",
+      "purpose": "Scan source code for compatibility risks",
+      "status": "success",
+      "startedAt": "2026-05-16T20:21:53.000Z",
+      "finishedAt": "2026-05-16T20:21:53.874Z",
+      "resultSummary": "Found 4 source issues in test fixtures only"
+    }
+  ],
+  "environmentEvidence": [
+    {
+      "source": "package.json:devDependencies.@types/node",
+      "filePath": "package.json",
+      "value": "~20.10.0",
+      "kind": "runtime"
+    },
+    {
+      "source": "package.json:scripts.viewer:serve",
+      "filePath": "package.json",
+      "value": "node packages/viewer-server/dist/server.js",
+      "kind": "script"
+    },
+    {
+      "source": "package-manager",
+      "filePath": "package.json",
+      "value": "pnpm",
+      "kind": "dependency-manager"
+    },
+    {
+      "source": "package.json",
+      "filePath": "package.json",
+      "value": "tsc",
+      "kind": "build-system"
+    }
+  ],
+  "issues": [],
+  "bobDecision": {
+    "summary": "Direct upgrade to Node 22 is recommended. The repository is a clean TypeScript monorepo with no production blockers.",
+    "selectedTargetPath": "Direct upgrade from Node 20 to Node 22",
+    "rationale": "All detected issues are confined to test fixtures in tmp/dev2-fixtures/, which are intentionally designed to test various Node version scenarios. The production codebase has zero dependency blockers, no CI/deployment configuration in the main project, and no source compatibility issues. The @types/node package can be safely upgraded from ~20.10.0 to ~22.x.x.",
+    "prioritizedRisks": [
+      "Test fixtures contain intentional legacy patterns that should remain unchanged",
+      "@types/node upgrade may reveal minor type incompatibilities that are easily fixed"
+    ],
+    "chosenSolutions": [
+      "Update @types/node to ~22.x.x in root package.json",
+      "Add explicit engines field to package.json to declare Node 22 support",
+      "Run full test suite to validate compatibility",
+      "Leave test fixtures unchanged as they test legacy scenarios"
+    ],
+    "tradeoffs": [
+      "Test fixtures will continue to reference older Node versions by design",
+      "No staged upgrade needed due to clean codebase"
+    ]
+  },
+  "bobExecutionPlan": [
+    {
+      "phase": "Preparation",
+      "order": 1,
+      "title": "Update Node.js type definitions",
+      "actions": [
+        "Update @types/node from ~20.10.0 to ~22.x.x in package.json",
+        "Run pnpm install to update lockfile"
+      ],
+      "dependsOn": [],
+      "validation": [
+        "Verify pnpm-lock.yaml reflects the new @types/node version"
+      ]
+    },
+    {
+      "phase": "Preparation",
+      "order": 2,
+      "title": "Declare Node 22 support",
+      "actions": [
+        "Add engines field to package.json: \"engines\": { \"node\": \">=22.0.0\" }",
+        "Document Node 22 requirement in README.md if not already present"
+      ],
+      "dependsOn": [
+        "Update Node.js type definitions"
+      ],
+      "validation": [
+        "Verify engines field is present in package.json"
+      ]
+    },
+    {
+      "phase": "Validation",
+      "order": 3,
+      "title": "Run type checking and build",
+      "actions": [
+        "Run pnpm typecheck to verify TypeScript compilation",
+        "Run pnpm build to compile all packages",
+        "Address any type errors that surface from @types/node upgrade"
+      ],
+      "dependsOn": [
+        "Declare Node 22 support"
+      ],
+      "validation": [
+        "All packages compile without errors",
+        "No new TypeScript errors introduced"
+      ]
+    },
+    {
+      "phase": "Validation",
+      "order": 4,
+      "title": "Run test suite",
+      "actions": [
+        "Run pnpm test to execute full test suite",
+        "Verify all tests pass on Node 22",
+        "Check that test fixtures still work as intended"
+      ],
+      "dependsOn": [
+        "Run type checking and build"
+      ],
+      "validation": [
+        "All tests pass",
+        "Test fixtures correctly validate legacy scenarios"
+      ]
+    },
+    {
+      "phase": "Deployment",
+      "order": 5,
+      "title": "Update development environment",
+      "actions": [
+        "Update local Node.js installation to version 22",
+        "Update CI/CD pipelines if they exist (none detected in main project)",
+        "Communicate upgrade to team members"
+      ],
+      "dependsOn": [
+        "Run test suite"
+      ],
+      "validation": [
+        "Development team is using Node 22",
+        "All environments are aligned"
+      ]
+    }
+  ],
+  "validationChecklist": [
+    {
+      "title": "Verify @types/node upgrade",
+      "commands": [
+        "grep '@types/node' package.json"
+      ],
+      "expectedResult": "@types/node version is ~22.x.x or compatible"
+    },
+    {
+      "title": "Verify engines field",
+      "commands": [
+        "grep -A 1 'engines' package.json"
+      ],
+      "expectedResult": "engines field declares Node >=22.0.0"
+    },
+    {
+      "title": "Type check all packages",
+      "commands": [
+        "pnpm typecheck"
+      ],
+      "expectedResult": "No TypeScript errors"
+    },
+    {
+      "title": "Build all packages",
+      "commands": [
+        "pnpm build"
+      ],
+      "expectedResult": "All packages compile successfully"
+    },
+    {
+      "title": "Run full test suite",
+      "commands": [
+        "pnpm test"
+      ],
+      "expectedResult": "All tests pass"
+    },
+    {
+      "title": "Verify Node version",
+      "commands": [
+        "node --version"
+      ],
+      "expectedResult": "Node version is 22.x.x"
+    }
+  ]
+}

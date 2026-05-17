@@ -15,9 +15,13 @@ import {
   preferHigherConfidenceDescriptor
 } from './detection/project-descriptor';
 import { NodeFrameworkAdapter } from './node/node-adapter';
+import { PythonFrameworkAdapter } from './python/python-adapter';
 import { ReactFrameworkAdapter } from './react/react-adapter';
 
 const frameworkAdapters: FrameworkAdapter[] = [
+  new PythonFrameworkAdapter('fastapi'),
+  new PythonFrameworkAdapter('django'),
+  new PythonFrameworkAdapter('flask'),
   new ReactFrameworkAdapter(),
   new NodeFrameworkAdapter()
 ];

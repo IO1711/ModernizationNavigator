@@ -16,6 +16,7 @@ import {
   packageManagerSchema,
   reportIdSchema,
   reportPathSchema,
+  reportPathV2Schema,
   repoRootSchema,
   safeSubdirectorySchema,
   targetNodeVersionSchema,
@@ -101,7 +102,8 @@ export const saveModernizationReportResultSchema = z
 
 export const openReportViewerInputSchema = z
   .object({
-    reportPath: reportPathSchema,
+    reportPath: z.union([reportPathSchema, reportPathV2Schema]),
+    repoRoot: repoRootSchema.optional(),
     autoOpenViewer: z.boolean().optional()
   })
   .strict();

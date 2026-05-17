@@ -3,7 +3,7 @@ import path from 'node:path';
 export const VIEWER_HOST = '127.0.0.1';
 export const DEFAULT_VIEWER_PORT = 4173;
 
-export function getProjectRoot(): string {
+export function getPackageRoot(): string {
   return path.resolve(__dirname, '../../..');
 }
 
@@ -19,9 +19,12 @@ export function getViewerUrl(port = getViewerPort()): string {
 }
 
 export function resolveViewerAssetPath(relativePath: string): string {
-  return path.resolve(getProjectRoot(), 'apps/viewer', relativePath);
+  return path.resolve(getPackageRoot(), 'apps/viewer', relativePath);
 }
 
-export function resolveProjectFilePath(relativePath: string): string {
-  return path.resolve(getProjectRoot(), relativePath);
+export function resolveWorkspaceFilePath(
+  workspaceRoot: string,
+  relativePath: string
+): string {
+  return path.resolve(path.resolve(workspaceRoot), relativePath);
 }

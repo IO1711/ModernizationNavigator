@@ -13,7 +13,8 @@ export async function openReportViewer(
   const parsedInput = openReportViewerInputSchema.parse(input);
   const result = await openViewer(
     parsedInput.reportPath,
-    parsedInput.autoOpenViewer ?? true
+    parsedInput.autoOpenViewer ?? true,
+    parsedInput.repoRoot
   );
 
   return openReportViewerResultSchema.parse(result);

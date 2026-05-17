@@ -12,6 +12,10 @@ export const KNOWLEDGE_BASE_FILES = {
     __dirname,
     '../data/deployment-runtime-rules.json'
   ),
+  pythonFrameworkRules: path.resolve(
+    __dirname,
+    '../data/ecosystems/python/framework-rules.json'
+  ),
   reactFrameworkRules: path.resolve(
     __dirname,
     '../data/ecosystems/node/react-rules.json'
@@ -69,6 +73,15 @@ export type ReactFrameworkRule = BaseKnowledgeRule & {
   };
 };
 
+export type PythonFrameworkRule = BaseKnowledgeRule & {
+  title: string;
+  match: {
+    packageName?: string;
+    maxRecommendedMajor?: number;
+    minRecommendedVersion?: string;
+  };
+};
+
 function readRuleFile<T>(filePath: string): ReadonlyArray<T> {
   try {
     const raw = fs.readFileSync(filePath, 'utf8');
@@ -83,6 +96,7 @@ let cachedPackageCompatibilityRules: ReadonlyArray<PackageCompatibilityRule> | n
   null;
 let cachedCiRuntimeRules: ReadonlyArray<CiRuntimeRule> | null = null;
 let cachedDeploymentRuntimeRules: ReadonlyArray<DeploymentRuntimeRule> | null = null;
+let cachedPythonFrameworkRules: ReadonlyArray<PythonFrameworkRule> | null = null;
 let cachedReactFrameworkRules: ReadonlyArray<ReactFrameworkRule> | null = null;
 
 export function loadNodeRuntimeRules(): ReadonlyArray<NodeRuntimeRule> {
@@ -111,6 +125,13 @@ export function loadDeploymentRuntimeRules(): ReadonlyArray<DeploymentRuntimeRul
     KNOWLEDGE_BASE_FILES.deploymentRuntimeRules
   );
   return cachedDeploymentRuntimeRules;
+}
+
+export function loadPythonFrameworkRules(): ReadonlyArray<PythonFrameworkRule> {
+  cachedPythonFrameworkRules ??= readRuleFile<PythonFrameworkRule>(
+    KNOWLEDGE_BASE_FILES.pythonFrameworkRules
+  );
+  return cachedPythonFrameworkRules;
 }
 
 export function loadReactFrameworkRules(): ReadonlyArray<ReactFrameworkRule> {
