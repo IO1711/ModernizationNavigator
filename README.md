@@ -135,6 +135,10 @@ npm run viewer:demo-sync
 npm run mcp:dev
 ```
 
+## How to test this MCP
+
+Start with `npm run build`, then run `npm run test` to execute the automated Vitest coverage for the MCP contracts, install flow, framework detection, and viewer runtime. For a quick manual smoke test, call `tools/list` against `packages/mcp-server/dist/index.js` over stdio and confirm the server returns the full tool registry. If you want a longer end-to-end walkthrough, use [tool_test_guide.html](/Users/bilolbekrayimov/games/IBM_hackathon/tool_test_guide.html), which includes the direct MCP smoke-test script and viewer checks.
+
 ## Workspace layout
 
 - `packages/mcp-server`: Bob-facing MCP server and setup command
